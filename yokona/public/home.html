@@ -1,0 +1,991 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Yokona</title>
+        <style>
+            body {
+                font-family: "Comic Sans MS", "Comic Sans", Sans-Serif;
+                background-color: #f0f0f0;
+                color: #000;
+                margin: 0;
+                padding: 0;
+                line-height: 1.4;
+            }
+
+            .container {
+                width: 90%;
+                max-width: 1200px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: 160px 1fr 240px;
+                gap: 10px;
+            }
+
+            /* Header */
+            .header {
+                grid-column: 1 / 4;
+                background-color: #96a8c8;
+                padding: 10px;
+                border-bottom: 3px solid #5a6d8a;
+                text-align: center;
+            }
+
+            .nav {
+                grid-column: 1 / 4;
+                background-color: #d0d8e8;
+                padding: 5px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+
+            .nav a {
+                margin: 0 15px;
+                text-decoration: none;
+                color: #334;
+                font-weight: bold;
+            }
+
+            /* Left sidebar */
+            .left-sidebar {
+                background-color: #e0e8f0;
+                padding: 10px;
+            }
+
+            .vertical-ad {
+                width: 120px;
+                height: 600px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            /* Main content */
+            .main-content {
+                background-color: #fff;
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+
+            .top-ad {
+                width: 100%;
+                height: 90px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            .about-box {
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+
+            .rules-boards-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .rules-box,
+            .popular-boards {
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                padding: 10px;
+            }
+
+            .rules-box h3,
+            .popular-boards h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .thread-listing {
+                background-color: #fff;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+
+            .thread-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #96a8c8;
+            }
+
+            .thread-header h2 {
+                margin: 0;
+                color: #5a6d8a;
+            }
+
+            .thread-actions button {
+                background-color: #96a8c8;
+                border: none;
+                padding: 5px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                margin-left: 5px;
+            }
+
+            .thread-category {
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 1px dashed #ccc;
+            }
+
+            .thread-category h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .thread-subject {
+                margin: 10px 0;
+                padding: 5px;
+                background-color: #f0f0f0;
+            }
+
+            .thread-items {
+                list-style-type: none;
+                padding-left: 5px;
+            }
+
+            .thread-items li {
+                padding: 3px 0;
+            }
+
+            .thread-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+
+            .thread-table th {
+                background-color: #96a8c8;
+                color: white;
+                padding: 5px;
+                text-align: left;
+            }
+
+            .thread-table td {
+                padding: 5px;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .thread-table tr:nth-child(even) {
+                background-color: #f8f8f8;
+            }
+
+            .thread-table tr:hover {
+                background-color: #e8f0f8;
+            }
+
+            .pagination {
+                margin-top: 15px;
+                text-align: center;
+            }
+
+            .pagination button {
+                background-color: #96a8c8;
+                border: none;
+                padding: 5px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                margin: 0 5px;
+            }
+
+            .pagination .page-number {
+                display: inline-block;
+                padding: 5px 10px;
+                background-color: #d0d8e8;
+                margin: 0 2px;
+            }
+
+            /* Right sidebar */
+            .right-sidebar {
+                background-color: #e0e8f0;
+                padding: 10px;
+            }
+
+            .stats-box {
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+
+            .stats-box h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .announcements-box {
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                padding: 10px;
+            }
+
+            .announcements-box h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .latest-posts {
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-top: 20px;
+            }
+
+            .latest-posts h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .latest-post-item {
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+                border-bottom: 1px dashed #ddd;
+            }
+
+            .latest-post-item:last-child {
+                border-bottom: none;
+            }
+
+            .latest-post-link {
+                color: #334;
+                text-decoration: none;
+            }
+
+            .latest-post-link:hover {
+                text-decoration: underline;
+                color: #5a6d8a;
+            }
+
+            /* Footer */
+            .footer {
+                grid-column: 1 / 4;
+                background-color: #d0d8e8;
+                padding: 10px;
+                text-align: center;
+                margin-top: 20px;
+                font-size: 0.9em;
+            }
+
+            .footer a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #334;
+            }
+
+            /* Welcome overlay */
+            .welcome-overlay {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: #fff;
+                padding: 20px;
+                border: 3px solid #96a8c8;
+                z-index: 1000;
+                width: 500px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            }
+
+            .welcome-overlay .close {
+                float: right;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+            .board-link {
+                display: block;
+                padding: 5px;
+                margin: 5px 0;
+                background-color: #e0e8f0;
+                border: 1px solid #ccc;
+                text-decoration: none;
+                color: #334;
+            }
+
+            .board-link:hover {
+                background-color: #d0d8e8;
+            }
+
+            /* Popular boards scroll container */
+            .popular-boards {
+                height: 320px; /* Increased height to show up to /marx/ */
+                display: flex;
+                flex-direction: column;
+            }
+
+            .board-scroll-container {
+                overflow-y: auto;
+                flex-grow: 1;
+                margin-top: 5px;
+                padding-right: 5px;
+                max-height: 280px; /* Increased to show more boards */
+            }
+
+            /* Custom scrollbar */
+            .board-scroll-container::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .board-scroll-container::-webkit-scrollbar-track {
+                background: #e0e8f0;
+            }
+
+            .board-scroll-container::-webkit-scrollbar-thumb {
+                background-color: #96a8c8;
+                border-radius: 4px;
+            }
+
+            .board-scroll-container::-webkit-scrollbar-thumb:hover {
+                background-color: #5a6d8a;
+            }
+
+            /* Make right sidebar links less noticeable */
+            .announcements-box a,
+            .latest-posts a {
+                color: #334; /* Dark gray instead of blue */
+                text-decoration: none; /* Remove underline */
+            }
+
+            .announcements-box a:hover,
+            .latest-posts a:hover {
+                text-decoration: underline; /* Only show underline on hover */
+                color: #5a6d8a; /* Slightly darker on hover */
+            }
+
+            /* Improve button styling */
+            button {
+                background-color: #96a8c8;
+                border: none;
+                padding: 5px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                margin: 0 5px;
+                border-radius: 3px;
+                box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            }
+
+            button:hover {
+                background-color: #5a6d8a;
+            }
+
+            /* Improve table styling */
+            .thread-table td {
+                padding: 8px 5px;
+            }
+
+            /* Mobile Responsive Styles */
+            @media screen and (max-width: 768px) {
+                .container {
+                    width: 100%;
+                    grid-template-columns: 1fr;
+                    gap: 5px;
+                    padding: 0 5px;
+                }
+
+                .header {
+                    grid-column: 1;
+                    padding: 8px;
+                }
+
+                .header h1 {
+                    font-size: 1.5em;
+                    margin: 0;
+                }
+
+                .nav {
+                    grid-column: 1;
+                    padding: 8px;
+                    font-size: 0.9em;
+                }
+
+                .nav a {
+                    margin: 0 8px;
+                    display: inline-block;
+                    padding: 5px;
+                }
+
+                .left-sidebar {
+                    display: none;
+                }
+
+                .main-content {
+                    grid-column: 1;
+                    padding: 8px;
+                }
+
+                .right-sidebar {
+                    grid-column: 1;
+                    padding: 8px;
+                    order: 3;
+                }
+
+                .footer {
+                    grid-column: 1;
+                    padding: 8px;
+                    font-size: 0.8em;
+                }
+
+                .top-ad {
+                    height: 60px;
+                    margin-bottom: 10px;
+                }
+
+                .about-box {
+                    padding: 8px;
+                    margin-bottom: 15px;
+                }
+
+                .rules-boards-container {
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                    margin-bottom: 15px;
+                }
+
+                .rules-box,
+                .popular-boards {
+                    padding: 8px;
+                }
+
+                .popular-boards {
+                    height: auto;
+                    max-height: 250px;
+                }
+
+                .board-scroll-container {
+                    max-height: 200px;
+                }
+
+                .thread-listing {
+                    padding: 8px;
+                    margin-bottom: 15px;
+                }
+
+                .thread-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+
+                .thread-header h2 {
+                    font-size: 1.2em;
+                }
+
+                .thread-table {
+                    font-size: 0.85em;
+                }
+
+                .thread-table th,
+                .thread-table td {
+                    padding: 5px 3px;
+                }
+
+                /* Hide some columns on very small screens */
+                .thread-table th:nth-child(4),
+                .thread-table td:nth-child(4) {
+                    display: none;
+                }
+
+                .stats-box,
+                .announcements-box,
+                .latest-posts {
+                    padding: 8px;
+                    margin-bottom: 15px;
+                }
+
+                .pagination {
+                    font-size: 0.9em;
+                }
+
+                .pagination button {
+                    padding: 4px 8px;
+                    margin: 0 2px;
+                    font-size: 0.85em;
+                }
+
+                .page-number {
+                    padding: 4px 8px;
+                    font-size: 0.85em;
+                }
+
+                .welcome-overlay {
+                    width: 90%;
+                    max-width: 400px;
+                    padding: 15px;
+                }
+
+                .welcome-overlay h2 {
+                    font-size: 1.3em;
+                }
+
+                .welcome-overlay p {
+                    font-size: 0.9em;
+                }
+            }
+
+            @media screen and (max-width: 480px) {
+                .header h1 {
+                    font-size: 1.3em;
+                }
+
+                .nav {
+                    font-size: 0.8em;
+                }
+
+                .nav a {
+                    margin: 0 5px;
+                    padding: 3px;
+                }
+
+                .thread-table {
+                    font-size: 0.8em;
+                }
+
+                /* Hide views column on very small screens */
+                .thread-table th:nth-child(4),
+                .thread-table td:nth-child(4),
+                .thread-table th:nth-child(3),
+                .thread-table td:nth-child(3) {
+                    display: none;
+                }
+
+                .pagination button {
+                    padding: 3px 6px;
+                    font-size: 0.8em;
+                }
+
+                .welcome-overlay {
+                    width: 95%;
+                    padding: 10px;
+                }
+
+                .welcome-overlay h2 {
+                    font-size: 1.2em;
+                }
+
+                .welcome-overlay p {
+                    font-size: 0.85em;
+                }
+
+                button {
+                    padding: 4px 10px;
+                    font-size: 0.9em;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>yokona.ne</h1>
+            </div>
+
+            <div class="nav">
+                <a href="#">Home</a>
+                <a href="#catalog.html">Catalog</a>
+                <a href="faq.html">FAQ</a>
+                <a href="contact.html">Contact</a>
+                <a href="legal.html">Legal</a>
+            </div>
+
+            <!-- Left sidebar -->
+            <div class="left-sidebar">
+                <div class="vertical-ad"></div>
+            </div>
+
+            <!-- Main content -->
+            <div class="main-content">
+                <div class="top-ad"></div>
+
+                <div class="about-box">
+                    <h3>About Yokona</h3>
+                    <p>
+                        Yokona is a user-run, self-coded from a bedroom
+                        Filipino-English forum for posting, overposting, and
+                        occasionally, class struggle.
+                    </p>
+                    <p>
+                        Threads range from theory debates to full-blown meme
+                        psychosis.
+                    </p>
+                    <p>
+                        Expect schizo ramblings, Taglish sarcasm, and the
+                        occasional NPA LARP.
+                    </p>
+                    <p>Post responsibly or get dialectically ratio'd.</p>
+                </div>
+
+                <div class="rules-boards-container">
+                    <div class="rules-box">
+                        <h3>-- Rules ----------------</h3>
+                        <ul>
+                            <li>
+                                No MAGAtards, anarcho-furries, or Facebook
+                                centrists.
+                            </li>
+                            <li>Post theory or post hole.</li>
+                            <li>NSFW allowed. Crime? No. Cringe? Also no.</li>
+                            <li>Mods are Godless. Don't beg.</li>
+                            <li>LARP responsibly.</li>
+                            <li>Coño posts get gulagged.</li>
+                            <li>
+                                No landlording, no lib whining, no Jesus
+                                cosplay.
+                            </li>
+                            <li>If you cry, you lose.</li>
+                            <li>Touch grass, not your cousin.</li>
+                            <li>Long live Supreme Leader Kuya Ambo.</li>
+                        </ul>
+                    </div>
+
+                    <div class="popular-boards">
+                        <h3>-- Popular Boards ---------------</h3>
+                        <div class="board-scroll-container">
+                            <a href="board.html?board=gen" class="board-link"
+                                >/gen/ - General Discussions</a
+                            >
+                            <a href="board.html?board=lol" class="board-link"
+                                >/lol/ - Meme Culture</a
+                            >
+                            <a href="board.html?board=pol" class="board-link"
+                                >/pol/ - Politically Incorrect
+                            </a>
+                            <a href="board.html?board=hot" class="board-link"
+                                >/hot/ - Spicy Takes</a
+                            >
+                            <a href="board.html?board=pasta" class="board-link"
+                                >/pasta/ - CopyPastas</a
+                            >
+                            <a href="board.html?board=sch" class="board-link"
+                                >/sch/ - Schizo-posting
+                            </a>
+                            <a href="board.html?board=db" class="board-link"
+                                >/db/ - Heated Debates
+                            </a>
+                            <a href="board.html?board=marx" class="board-link"
+                                >/marx/ - Marxism-Leninism</a
+                            >
+                            <a href="board.html?board=gr" class="board-link"
+                                >/gr/ - Green-Text</a
+                            >
+                            <a href="board.html?board=worm" class="board-link"
+                                >/worm/ - Brainworm</a
+                            >
+                            <a href="board.html?board=coal" class="board-link"
+                                >/coal/ - Coal Mine</a
+                            >
+                            <a href="board.html?board=gem" class="board-link"
+                                >/gem/ - Rare Gem</a
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="thread-listing">
+                    <div class="thread-header">
+                        <h2>---------- Latest Posts ----------------------</h2>
+                        <div class="thread-actions">
+                            <button>Refresh</button>
+                        </div>
+                    </div>
+
+                    <table class="thread-table" id="latest-threads-table">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Board</th>
+                                <th>Replies</th>
+                                <th>Views</th>
+                                <th>Last Bump</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td
+                                    colspan="5"
+                                    style="text-align: center; padding: 20px"
+                                >
+                                    Loading latest posts...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="pagination" id="home-pagination">
+                        <button
+                            id="prev-btn"
+                            onclick="changeHomePage(currentHomePage - 1)"
+                        >
+                            « Prev
+                        </button>
+                        <span class="page-number" id="page-info">1</span>
+                        <button
+                            id="next-btn"
+                            onclick="changeHomePage(currentHomePage + 1)"
+                        >
+                            Next »
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right sidebar -->
+            <div class="right-sidebar">
+                <div class="stats-box" id="stats-box">
+                    <h3>Site Statistics</h3>
+                    <p>Loading statistics...</p>
+                </div>
+
+                <div class="announcements-box">
+                    <h3>Announcements</h3>
+                    <p>
+                        <strong>2025-01-24:</strong> Welcome to the new Yokona!
+                        Enjoy your stay.
+                    </p>
+                    <p>
+                        <strong>2025-01-20:</strong> Server maintenance
+                        completed successfully.
+                    </p>
+                    <p>
+                        <strong>2025-01-15:</strong> New boards added: /gr/ and
+                        /sch/.
+                    </p>
+                    <p>
+                        <strong>2025-01-10:</strong> Rules have been updated -
+                        please review.
+                    </p>
+                    <p>
+                        <strong>2025-01-05:</strong> Server upgrade planned for
+                        next week.
+                    </p>
+                </div>
+
+                <div class="latest-posts" id="latest-posts">
+                    <h3>Quick Links</h3>
+                    <div class="latest-post-item">
+                        <strong
+                            ><a
+                                href="board.html?board=gen"
+                                class="latest-post-link"
+                                >/gen/ - General Discussion</a
+                            ></strong
+                        ><br />
+                        The main hub for all general topics
+                    </div>
+                    <div class="latest-post-item">
+                        <strong
+                            ><a
+                                href="board.html?board=pol"
+                                class="latest-post-link"
+                                >/pol/ - Politics</a
+                            ></strong
+                        ><br />
+                        Political discussions and debates
+                    </div>
+                    <div class="latest-post-item">
+                        <strong
+                            ><a
+                                href="board.html?board=marx"
+                                class="latest-post-link"
+                                >/marx/ - Marxism</a
+                            ></strong
+                        ><br />
+                        Theory and praxis discussions
+                    </div>
+                    <div class="latest-post-item">
+                        <strong
+                            ><a
+                                href="board.html?board=hot"
+                                class="latest-post-link"
+                                >/hot/ - Spicy Takes</a
+                            ></strong
+                        ><br />
+                        Controversial opinions welcome
+                    </div>
+                    <div class="latest-post-item">
+                        <strong
+                            ><a href="faq.html" class="latest-post-link"
+                                >FAQ</a
+                            ></strong
+                        ><br />
+                        Frequently asked questions
+                    </div>
+                    <div class="latest-post-item">
+                        <strong
+                            ><a href="contact.html" class="latest-post-link"
+                                >Contact</a
+                            ></strong
+                        ><br />
+                        Get in touch with moderators
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <a href="#">FAQ</a> | <a href="#">Contact</a> |
+                <a href="#">Legal</a> |
+                <a href="#">Donate</a>
+                <p>Yokona - Since 2025</p>
+            </div>
+        </div>
+
+        <!-- Welcome overlay -->
+        <div class="welcome-overlay" id="welcomeOverlay">
+            <span
+                class="close"
+                onclick="document.getElementById('welcomeOverlay').style.display='none'"
+                >✕</span
+            >
+            <h2>WELCOME TO YOKONA</h2>
+            <p>
+                Ako nga pala si Ka Silang. Sole proprietor, site admin, webdev,
+                at designated theorist-in-residence.
+            </p>
+            <p>
+                Mahal ko ang dialectical materialism at pusa. Yung literal at
+                yung metaphorical.
+            </p>
+            <p>
+                Enjoy mo to habang libre pa. Pag nainis ako, magiging .onion na
+                lang to.
+            </p>
+        </div>
+
+        <script>
+            // Load site statistics
+            async function loadStats() {
+                try {
+                    const response = await fetch("/api/stats");
+                    if (!response.ok) throw new Error("Failed to load stats");
+
+                    const stats = await response.json();
+                    const statsBox = document.getElementById("stats-box");
+
+                    statsBox.innerHTML = `
+                    <h3>Site Statistics</h3>
+                    <p>Site Users: ${stats.siteUsers}</p>
+                    <p>Posts Today: ${stats.postsToday}</p>
+                    <p>Threads Today: ${stats.threadsToday}</p>
+                    <p>Total Threads: ${stats.totalThreads}</p>
+                    <p>Total Posts: ${stats.totalPosts}</p>
+                `;
+                } catch (error) {
+                    console.error("Error loading stats:", error);
+                }
+            }
+
+            let currentHomePage = 1;
+            let totalHomePages = 1;
+
+            // Load latest posts
+            async function loadLatestPosts() {
+                try {
+                    const response = await fetch(
+                        `/api/latest-posts?page=${currentHomePage}&limit=10`,
+                    );
+                    if (!response.ok)
+                        throw new Error("Failed to load latest posts");
+
+                    const data = await response.json();
+                    const posts = data.posts || data;
+                    totalHomePages = data.totalPages || 1;
+
+                    const tbody = document.querySelector(
+                        "#latest-threads-table tbody",
+                    );
+
+                    if (posts.length === 0) {
+                        tbody.innerHTML =
+                            '<tr><td colspan="5" style="text-align: center;">No posts yet</td></tr>';
+                        return;
+                    }
+
+                    let postsHTML = "";
+                    posts.forEach((post) => {
+                        const lastBump = new Date(
+                            post.last_bump_at,
+                        ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        });
+
+                        postsHTML += `
+                        <tr onclick="window.location.href='thread.html?thread=${post.id}'" style="cursor: pointer;">
+                            <td><strong>${post.subject || "No Subject"}</strong></td>
+                            <td>/${post.board_slug}/</td>
+                            <td>${post.reply_count || 0}</td>
+                            <td>${post.views || 0}</td>
+                            <td>${lastBump}</td>
+                        </tr>
+                    `;
+                    });
+
+                    tbody.innerHTML = postsHTML;
+                    updateHomePagination();
+                } catch (error) {
+                    console.error("Error loading latest posts:", error);
+                }
+            }
+
+            // Update home pagination
+            function updateHomePagination() {
+                const prevBtn = document.getElementById("prev-btn");
+                const nextBtn = document.getElementById("next-btn");
+                const pageInfo = document.getElementById("page-info");
+
+                prevBtn.disabled = currentHomePage === 1;
+                nextBtn.disabled = currentHomePage === totalHomePages;
+                pageInfo.textContent = `${currentHomePage} of ${totalHomePages}`;
+            }
+
+            // Change home page
+            function changeHomePage(page) {
+                if (page < 1 || page > totalHomePages) return;
+                currentHomePage = page;
+                loadLatestPosts();
+            }
+
+            // Refresh functionality
+            async function refreshData() {
+                await loadStats();
+                await loadLatestPosts();
+            }
+
+            // Refresh button functionality
+            document
+                .querySelector(".thread-actions button")
+                .addEventListener("click", refreshData);
+
+            // Initialize data loading
+            document.addEventListener("DOMContentLoaded", function () {
+                loadStats();
+                loadLatestPosts();
+            });
+
+            // Close welcome overlay after 5 seconds
+            setTimeout(function () {
+                document.getElementById("welcomeOverlay").style.display =
+                    "none";
+            }, 5000);
+        </script>
+    </body>
+</html>

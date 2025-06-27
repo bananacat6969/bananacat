@@ -1,0 +1,740 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Board - Yokona</title>
+        <style>
+            body {
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
+                background-color: #f0f0f0;
+                color: #000;
+                margin: 0;
+                padding: 0;
+                line-height: 1.4;
+            }
+
+            .container {
+                width: 90%;
+                max-width: 1200px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: 160px 1fr;
+                gap: 10px;
+            }
+
+            /* Header */
+            .header {
+                grid-column: 1 / 3;
+                background-color: #96a8c8;
+                padding: 10px;
+                border-bottom: 3px solid #5a6d8a;
+                text-align: center;
+            }
+
+            .nav {
+                background-color: #d0d8e8;
+                padding: 5px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+
+            .nav a {
+                margin: 0 15px;
+                text-decoration: none;
+                color: #334;
+                font-weight: bold;
+            }
+
+            /* Left sidebar */
+            .left-sidebar {
+                background-color: #e0e8f0;
+                padding: 10px;
+            }
+
+            .vertical-ad {
+                width: 120px;
+                height: 600px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            /* Main content */
+            .main-content {
+                background-color: #fff;
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+
+            .top-ad {
+                width: 100%;
+                height: 90px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            .board-title {
+                background-color: #96a8c8;
+                color: white;
+                padding: 5px 10px;
+                margin-bottom: 10px;
+            }
+
+            .post-form {
+                background-color: #e0e8f0;
+                padding: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+            }
+
+            .post-form input,
+            .post-form textarea {
+                width: 100%;
+                margin-bottom: 10px;
+                font-family: inherit;
+                padding: 5px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
+            }
+
+            .file-upload-wrapper {
+                position: relative;
+                display: inline-block;
+                margin-bottom: 10px;
+            }
+
+            .file-upload-button {
+                background-color: #5a6d8a;
+                color: white;
+                padding: 8px 15px;
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
+                border-radius: 3px;
+                font-size: 0.9em;
+            }
+
+            .file-upload-button:hover {
+                background-color: #4a5d7a;
+            }
+
+            .file-upload-input {
+                position: absolute;
+                left: -9999px;
+            }
+
+            .success-modal,
+            .error-modal {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 2000;
+                display: none;
+            }
+
+            .modal-content {
+                background-color: white;
+                padding: 20px;
+                border-radius: 8px;
+                max-width: 350px;
+                text-align: left;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                border: 2px solid #96a8c8;
+                animation: slideIn 0.3s ease-out;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .success-modal .modal-content {
+                border-color: #4caf50;
+            }
+
+            .error-modal .modal-content {
+                border-color: #f44336;
+            }
+
+            .modal-content h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .success-modal .modal-content h3 {
+                color: #4caf50;
+            }
+
+            .error-modal .modal-content h3 {
+                color: #f44336;
+            }
+
+            .modal-button {
+                background-color: #96a8c8;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-family: inherit;
+                border-radius: 3px;
+                margin-top: 15px;
+            }
+
+            .modal-button:hover {
+                background-color: #5a6d8a;
+            }
+
+            .post-form textarea {
+                height: 100px;
+            }
+
+            .post-form button {
+                background-color: #96a8c8;
+                border: none;
+                padding: 8px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                font-weight: bold;
+            }
+
+            .thread {
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+                padding: 10px;
+                background-color: #f8f8f8;
+            }
+
+            .post-header {
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #5a6d8a;
+            }
+
+            .post-id {
+                color: #888;
+                font-size: 0.9em;
+            }
+
+            .post-image {
+                max-width: 200px;
+                max-height: 200px;
+                margin: 5px 0;
+                border: 1px solid #ddd;
+            }
+
+            .post-content {
+                margin: 10px 0;
+            }
+
+            .thread-stats {
+                font-size: 0.9em;
+                color: #666;
+                margin-top: 10px;
+                padding-top: 5px;
+                border-top: 1px dashed #ccc;
+            }
+
+            .pagination {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            .pagination button {
+                background-color: #96a8c8;
+                border: none;
+                padding: 5px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                margin: 0 5px;
+            }
+
+            .pagination button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+            .pagination span {
+                padding: 5px 10px;
+                background-color: #d0d8e8;
+                margin: 0 2px;
+                display: inline-block;
+            }
+
+            /* Footer */
+            .footer {
+                grid-column: 1 / 3;
+                background-color: #d0d8e8;
+                padding: 10px;
+                text-align: center;
+                margin-top: 20px;
+                font-size: 0.9em;
+            }
+
+            .footer a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #334;
+            }
+
+            .threads-header {
+                background-color: #d0d8f0;
+                font-weight: bold;
+                padding: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #999;
+            }
+
+            .thread-item {
+                border: 1px solid #999;
+                padding: 10px;
+                background-color: #f0f4ff;
+                margin-bottom: 10px;
+                cursor: pointer;
+            }
+
+            .thread-item:hover {
+                background-color: #e0e8f8;
+            }
+
+            .thread-item a {
+                font-weight: bold;
+                text-decoration: none;
+                color: #334;
+            }
+
+            .thread-item small {
+                color: #666;
+                margin-left: 10px;
+            }
+
+            .no-threads {
+                padding: 20px;
+                border: 1px solid #999;
+                background-color: #f0f4ff;
+                text-align: center;
+                font-size: 0.9em;
+            }
+
+            .board-info {
+                margin-bottom: 15px;
+                padding: 10px;
+                background-color: #e0e8f0;
+                border: 1px solid #ccc;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 20px;
+                font-style: italic;
+                color: #666;
+            }
+
+            .error {
+                color: #d32f2f;
+                background-color: #ffebee;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #ffcdd2;
+            }
+
+            .threads-header {
+                background-color: #d0d8f0;
+                font-weight: bold;
+                padding: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #999;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .refresh-btn {
+                background-color: #96a8c8;
+                border: none;
+                padding: 5px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                border-radius: 3px;
+            }
+
+            .refresh-btn:hover {
+                background-color: #5a6d8a;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>yokona</h1>
+                <div class="nav">
+                    <a href="home.html">Home</a>
+                    <a
+                        href="#"
+                        onclick="window.location.href=`catalog.html?board=${boardSlug}`"
+                        >Catalog</a
+                    >
+                    <a href="faq.html">FAQ</a>
+                    <a href="contact.html">Contact</a>
+                    <a href="legal.html">Legal</a>
+                </div>
+            </div>
+
+            <!-- Left sidebar -->
+            <div class="left-sidebar">
+                <div class="vertical-ad"></div>
+            </div>
+
+            <!-- Main content -->
+            <div class="main-content">
+                <div class="top-ad"></div>
+
+                <div class="board-title" id="board-title">Loading...</div>
+                <div class="board-info" id="board-info">
+                    Loading board information...
+                </div>
+
+                <div class="post-form">
+                    <h3>New Thread</h3>
+                    <form id="thread-form">
+                        <input
+                            type="text"
+                            id="thread-subject"
+                            placeholder="Subject"
+                        />
+                        <textarea
+                            id="thread-content"
+                            placeholder="Content"
+                            required
+                        ></textarea>
+                        <div class="file-upload-wrapper">
+                            <input
+                                type="file"
+                                id="thread-file"
+                                accept="image/*"
+                                class="file-upload-input"
+                            />
+                            <button
+                                type="button"
+                                class="file-upload-button"
+                                onclick="document.getElementById('thread-file').click()"
+                            >
+                                Choose Image
+                            </button>
+                            <span
+                                id="file-name"
+                                style="
+                                    margin-left: 10px;
+                                    font-size: 0.9em;
+                                    color: #666;
+                                "
+                            ></span>
+                        </div>
+                        <div>
+                            <button type="submit">Post</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="threads-header" id="threads-header">
+                    <span>📋 Threads</span>
+                    <button class="refresh-btn" onclick="refreshThreads()">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div id="threads-container">
+                    <div class="loading">Loading threads...</div>
+                </div>
+
+                <div id="pagination-container" class="pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+
+            <div class="footer">
+                <a href="faq.html">FAQ</a> |
+                <a href="contact.html">Contact</a> |
+                <a href="legal.html">Legal</a> |
+                <a href="#">Donate</a>
+                <p>Yokona - Since 2025</p>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="success-modal" id="success-modal">
+            <div class="modal-content">
+                <h3>✓ Success!</h3>
+                <p id="success-message">Thread created successfully!</p>
+                <button
+                    class="modal-button"
+                    onclick="closeModal('success-modal')"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div class="error-modal" id="error-modal">
+            <div class="modal-content">
+                <h3>✗ Error</h3>
+                <p id="error-message">Something went wrong!</p>
+                <button
+                    class="modal-button"
+                    onclick="closeModal('error-modal')"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+
+        <script>
+            const boardSlug =
+                new URLSearchParams(window.location.search).get("board") ||
+                "gen";
+            let currentPage = 1;
+            let totalPages = 1;
+            let catalogMode = false;
+
+            // Initialize board
+            async function initBoard() {
+                try {
+                    const boardResponse = await fetch(
+                        `/api/boards/${boardSlug}`,
+                    );
+                    if (!boardResponse.ok) throw new Error("Board not found");
+
+                    const board = await boardResponse.json();
+                    updateBoardInfo(board);
+                    await loadThreads();
+                } catch (error) {
+                    document.getElementById("board-title").textContent =
+                        "Error loading board";
+                    document.getElementById("board-info").innerHTML =
+                        `<div class="error">Error: ${error.message}</div>`;
+                }
+            }
+
+            // Update board info display
+            function updateBoardInfo(board) {
+                document.getElementById("board-title").textContent =
+                    `/${board.slug}/ - ${board.name}`;
+                document.getElementById("board-info").innerHTML = `
+                <strong>Board Description:</strong> ${board.description || "No description available"}
+                <br><strong>Rules:</strong> Follow site-wide rules. No spam, harassment, or illegal content.
+            `;
+                document
+                    .getElementById("threads-header")
+                    .querySelector("span").textContent =
+                    `Threads in /${board.slug}/`;
+            }
+
+            // Load threads
+            async function loadThreads() {
+                const threadsContainer =
+                    document.getElementById("threads-container");
+                threadsContainer.innerHTML =
+                    '<div class="loading">Loading threads...</div>';
+
+                try {
+                    const response = await fetch(
+                        `/api/boards/${boardSlug}/threads?page=${currentPage}&limit=10`,
+                    );
+                    if (!response.ok) throw new Error("Failed to load threads");
+
+                    const data = await response.json();
+                    totalPages = data.totalPages;
+                    renderThreads(data.threads);
+                    updatePagination();
+                } catch (error) {
+                    threadsContainer.innerHTML = `
+                    <div class="error">
+                        Error loading threads: ${error.message}
+                    </div>
+                `;
+                }
+            }
+
+            // Render threads
+            function renderThreads(threads) {
+                const threadsContainer =
+                    document.getElementById("threads-container");
+
+                if (threads.length === 0) {
+                    threadsContainer.innerHTML = `
+                    <div class="no-threads">
+                        No threads found. Be the first to post!
+                    </div>
+                `;
+                    return;
+                }
+
+                let threadsHTML = "";
+                threads.forEach((thread) => {
+                    const postDate = new Date(
+                        thread.created_at,
+                    ).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                    });
+
+                    threadsHTML += `
+                    <div class="thread-item" onclick="viewThread(${thread.id})">
+                        <a href="thread.html?thread=${thread.id}">${thread.subject || "No Subject"}</a>
+                        <small>by Anonymous</small>
+                        <div class="thread-stats">
+                            ${postDate} | ${thread.reply_count || 0} replies |  ${thread.views || 0} views
+                        </div>
+                    </div>
+                `;
+                });
+
+                threadsContainer.innerHTML = threadsHTML;
+            }
+
+            // Update pagination
+            function updatePagination() {
+                const paginationContainer = document.getElementById(
+                    "pagination-container",
+                );
+
+                let paginationHTML = `
+                <button onclick="changePage(1)" ${currentPage === 1 ? "disabled" : ""}>« First</button>
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>‹ Prev</button>
+                <span>Page ${currentPage} of ${totalPages}</span>
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>Next ›</button>
+                <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""}>Last »</button>
+            `;
+
+                paginationContainer.innerHTML = paginationHTML;
+            }
+
+            // Change page
+            function changePage(page) {
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                loadThreads();
+            }
+
+            // Create new thread
+            async function createThread(event) {
+                event.preventDefault();
+
+                const subject = document.getElementById("thread-subject").value;
+                const content = document.getElementById("thread-content").value;
+                const fileInput = document.getElementById("thread-file");
+
+                if (!content) {
+                    showModal(
+                        "error",
+                        "Please enter some content for your thread",
+                    );
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append("subject", subject);
+                    formData.append("content", content);
+                    if (fileInput.files[0]) {
+                        formData.append("image", fileInput.files[0]);
+                    }
+
+                    const response = await fetch(
+                        `/api/boards/${boardSlug}/threads`,
+                        {
+                            method: "POST",
+                            body: formData,
+                        },
+                    );
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(
+                            errorData.error || "Failed to create thread",
+                        );
+                    }
+
+                    // Reset form
+                    document.getElementById("thread-form").reset();
+
+                    // Reload threads
+                    currentPage = 1;
+                    await loadThreads();
+
+                    showModal("success", "Thread created successfully!");
+                } catch (error) {
+                    console.error("Error creating thread:", error);
+                    showModal("error", `Error: ${error.message}`);
+                }
+            }
+
+            // View thread
+            function viewThread(threadId) {
+                // Prevent duplicate navigation
+                if (event) {
+                    event.preventDefault();
+                }
+                window.location.href = `thread.html?thread=${threadId}`;
+            }
+
+            // Refresh threads
+            function refreshThreads() {
+                loadThreads();
+            }
+
+            // Show modal
+            function showModal(type, message) {
+                const modal = document.getElementById(`${type}-modal`);
+                const messageEl = document.getElementById(`${type}-message`);
+                messageEl.textContent = message;
+                modal.style.display = "block";
+
+                // Auto-dismiss after 2 seconds
+                setTimeout(() => {
+                    closeModal(`${type}-modal`);
+                }, 2000);
+            }
+
+            // Close modal
+            function closeModal(modalId) {
+                document.getElementById(modalId).style.display = "none";
+            }
+
+            // Handle file selection
+            document
+                .getElementById("thread-file")
+                .addEventListener("change", function (e) {
+                    const fileName = document.getElementById("file-name");
+                    if (e.target.files.length > 0) {
+                        fileName.textContent = e.target.files[0].name;
+                    } else {
+                        fileName.textContent = "";
+                    }
+                });
+
+            // Initialize when page loads
+            document.addEventListener("DOMContentLoaded", initBoard);
+
+            // Set up form submission
+            document
+                .getElementById("thread-form")
+                .addEventListener("submit", createThread);
+        </script>
+    </body>
+</html>

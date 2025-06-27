@@ -1,0 +1,989 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Thread - Yokona</title>
+        <style>
+            body {
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
+                background-color: #f0f0f0;
+                color: #000;
+                margin: 0;
+                padding: 0;
+                line-height: 1.6;
+            }
+
+            .container {
+                width: 90%;
+                max-width: 1200px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: 160px 1fr 240px;
+                gap: 10px;
+            }
+
+            /* Header */
+            .header {
+                grid-column: 1 / 4;
+                background-color: #96a8c8;
+                padding: 10px;
+                border-bottom: 3px solid #5a6d8a;
+                text-align: center;
+            }
+
+            .nav {
+                background-color: #d0d8e8;
+                padding: 5px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+
+            .nav a {
+                margin: 0 15px;
+                text-decoration: none;
+                color: #334;
+                font-weight: bold;
+            }
+
+            /* Left sidebar */
+            .left-sidebar {
+                background-color: #e0e8f0;
+                padding: 10px;
+            }
+
+            .vertical-ad {
+                width: 120px;
+                height: 600px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            /* Main content */
+            .main-content {
+                background-color: #fff;
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+
+            .top-ad {
+                width: 100%;
+                height: 90px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            .thread-title {
+                background-color: #96a8c8;
+                color: white;
+                padding: 10px;
+                margin-bottom: 20px;
+                font-size: 1.2em;
+                font-weight: bold;
+            }
+
+            /* Post styling */
+            .post {
+                margin-bottom: 15px;
+                background-color: #f0f4ff;
+                border: 1px solid #d9d9d9;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .post-header {
+                background-color: #e0e8f0;
+                padding: 8px 10px;
+                border-bottom: 1px solid #d9d9d9;
+                font-size: 0.9em;
+            }
+
+            .post-name {
+                color: #117743;
+                font-weight: bold;
+            }
+
+            .post-date {
+                color: #000;
+                margin-left: 10px;
+            }
+
+            .post-id {
+                color: #000;
+                margin-left: 10px;
+            }
+
+            .post-no {
+                color: #000;
+                margin-left: 10px;
+            }
+
+            .post-body {
+                padding: 10px;
+                display: flex;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .post-image {
+                max-width: 250px;
+                max-height: 250px;
+                border: 1px solid #ddd;
+                flex-shrink: 0;
+                cursor: pointer;
+            }
+
+            .post-image:hover {
+                opacity: 0.9;
+            }
+
+            .post-content {
+                flex: 1;
+                word-wrap: break-word;
+                line-height: 1.6;
+            }
+
+            /* Quote styling */
+            .quote {
+                color: #789922;
+                text-decoration: none;
+            }
+
+            .quote:hover {
+                color: #ff0000;
+                text-decoration: underline;
+            }
+
+            .quotelink {
+                color: #dd0000;
+                text-decoration: none;
+            }
+
+            .quotelink:hover {
+                color: #ff0000;
+                text-decoration: underline;
+            }
+
+            /* Reply form */
+            .reply-form {
+                background-color: #e0e8f0;
+                padding: 20px;
+                margin-top: 20px;
+                border: 1px solid #ccc;
+            }
+
+            .reply-form h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .reply-form table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .reply-form td {
+                padding: 3px;
+                vertical-align: top;
+            }
+
+            .reply-form input[type="text"],
+            .reply-form textarea {
+                font-family: inherit;
+                padding: 4px;
+                border: 1px solid #ccc;
+                background-color: #fff;
+            }
+
+            .reply-form textarea {
+                width: 100%;
+                height: 120px;
+                resize: vertical;
+                box-sizing: border-box;
+            }
+
+            .file-upload-wrapper {
+                position: relative;
+                display: inline-block;
+            }
+
+            .file-upload-button {
+                background-color: #5a6d8a;
+                color: white;
+                padding: 4px 8px;
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: 0.9em;
+            }
+
+            .file-upload-button:hover {
+                background-color: #4a5d7a;
+            }
+
+            .file-upload-input {
+                position: absolute;
+                left: -9999px;
+            }
+
+            .reply-form button[type="submit"] {
+                background-color: #96a8c8;
+                border: none;
+                padding: 8px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                font-weight: bold;
+            }
+
+            .reply-form button[type="submit"]:hover {
+                background-color: #5a6d8a;
+            }
+
+            /* Footer */
+            .footer {
+                grid-column: 1 / 4;
+                background-color: #d0d8e8;
+                padding: 10px;
+                text-align: center;
+                margin-top: 20px;
+                font-size: 0.9em;
+            }
+
+            .footer a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #334;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 20px;
+                font-style: italic;
+                color: #666;
+            }
+
+            .error {
+                color: #d32f2f;
+                background-color: #ffebee;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #ffcdd2;
+            }
+
+            /* Success/Error Messages */
+            .success-modal,
+            .error-modal {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 2000;
+                display: none;
+            }
+
+            .modal-content {
+                background-color: white;
+                padding: 20px;
+                border-radius: 8px;
+                max-width: 350px;
+                text-align: left;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                border: 2px solid #96a8c8;
+                animation: slideIn 0.3s ease-out;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .success-modal .modal-content {
+                border-left: 5px solid #4caf50;
+            }
+
+            .error-modal .modal-content {
+                border-left: 5px solid #f44336;
+            }
+
+            .modal-content h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+            }
+
+            .success-modal .modal-content h3 {
+                color: #4caf50;
+            }
+
+            .error-modal .modal-content h3 {
+                color: #f44336;
+            }
+
+            .modal-button {
+                background-color: #96a8c8;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                cursor: pointer;
+                font-family: inherit;
+                border-radius: 5px;
+                margin-top: 15px;
+                font-weight: bold;
+            }
+
+            .modal-button:hover {
+                background-color: #5a6d8a;
+            }
+
+            /* Right sidebar */
+            .right-sidebar {
+                background-color: #e0e8f0;
+                padding: 10px;
+            }
+
+            .sidebar-box {
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+
+            .sidebar-box h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+                font-size: 1em;
+            }
+
+            .ad-box {
+                text-align: center;
+                padding: 15px;
+                background-color: #fff;
+                border: 2px dashed #96a8c8;
+                margin-bottom: 15px;
+                font-size: 0.85em;
+            }
+
+            /* Reply highlight */
+            .post.highlighted {
+                background-color: #d6bad0 !important;
+                border-color: #ba9dbf !important;
+            }
+
+            .post.referenced {
+                background-color: #e8f4fd !important;
+                border-color: #b8ddf1 !important;
+            }
+
+            /* Popup quote preview */
+            .quote-preview {
+                position: absolute;
+                background-color: #f0f4ff;
+                border: 1px solid #d9d9d9;
+                padding: 10px;
+                max-width: 400px;
+                z-index: 1000;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+                font-size: 0.9em;
+            }
+
+            .quote-preview .post-header {
+                background-color: #e0e8f0;
+                padding: 5px;
+                margin: -10px -10px 5px -10px;
+                border-bottom: 1px solid #d9d9d9;
+                font-size: 0.8em;
+            }
+
+            /* Pagination */
+            .pagination {
+                text-align: center;
+                padding: 10px 0;
+                background-color: #f0f4ff;
+                border: 1px solid #d9d9d9;
+            }
+
+            .pagination button {
+                background-color: #96a8c8;
+                border: none;
+                padding: 8px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                margin: 0 5px;
+                border-radius: 3px;
+            }
+
+            .pagination button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+            .pagination button:hover:not(:disabled) {
+                background-color: #5a6d8a;
+            }
+
+            .pagination span {
+                padding: 8px 15px;
+                background-color: #d0d8e8;
+                margin: 0 5px;
+                display: inline-block;
+                border-radius: 3px;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>yokona</h1>
+                <div class="nav">
+                    <a href="home.html">Home</a>
+                    <a href="#" onclick="goBackToBoard()">Back to Board</a>
+                    <a href="faq.html">FAQ</a>
+                    <a href="contact.html">Contact</a>
+                    <a href="legal.html">Legal</a>
+                </div>
+            </div>
+
+            <!-- Left sidebar -->
+            <div class="left-sidebar">
+                <div class="vertical-ad"></div>
+            </div>
+
+            <!-- Main content -->
+            <div class="main-content">
+                <div class="top-ad"></div>
+
+                <div class="thread-title" id="thread-title">
+                    Loading thread...
+                </div>
+
+                <div id="posts-container">
+                    <div class="loading">Loading posts...</div>
+                </div>
+
+                <div
+                    id="pagination-bottom"
+                    class="pagination"
+                    style="margin-top: 20px"
+                >
+                    <!-- Bottom pagination will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Right sidebar -->
+            <div class="right-sidebar">
+                <div class="ad-box">
+                    <h3>📚 BOOKS FOR SALE</h3>
+                    <p>
+                        <strong>"How to Be More Dialectical"</strong><br />
+                        by Ka Silang<br />
+                        ₱420.69
+                    </p>
+                    <p>
+                        <strong>"My Struggle with Liberalism"</strong><br />
+                        by Anonymous Komrade<br />
+                        ₱666.00
+                    </p>
+                    <small>Contact: theories4u@protonmail.com</small>
+                </div>
+
+                <div class="ad-box">
+                    <h3>👥 READING GROUP</h3>
+                    <p>
+                        <strong>Tuesdays 7PM</strong><br />
+                        Currently reading:<br />
+                        "State and Revolution"
+                    </p>
+                    <p>Location: That sketchy café near UP Diliman</p>
+                    <small>DM @redpillkomrade on TG</small>
+                </div>
+
+                <div class="ad-box">
+                    <h3>⚠️ REMINDER</h3>
+                    <p><strong>Touch grass, comrade!</strong></p>
+                    <p>
+                        Dialectical materialism works best when you experience
+                        material reality outside your bedroom.
+                    </p>
+                    <small>- Admin</small>
+                </div>
+            </div>
+
+            <div class="footer">
+                <a href="faq.html">FAQ</a> |
+                <a href="contact.html">Contact</a> |
+                <a href="legal.html">Legal</a> |
+                <a href="#">Donate</a>
+                <p>Yokona - Since 2025</p>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="success-modal" id="success-modal">
+            <div class="modal-content">
+                <h3>✓ Success!</h3>
+                <p id="success-message">Reply posted successfully!</p>
+                <button
+                    class="modal-button"
+                    onclick="closeModal('success-modal')"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div class="error-modal" id="error-modal">
+            <div class="modal-content">
+                <h3>✗ Error</h3>
+                <p id="error-message">Something went wrong!</p>
+                <button
+                    class="modal-button"
+                    onclick="closeModal('error-modal')"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+
+        <!-- Quote preview popup -->
+        <div
+            id="quote-preview"
+            class="quote-preview"
+            style="display: none"
+        ></div>
+
+        <script>
+            const threadId = new URLSearchParams(window.location.search).get(
+                "thread",
+            );
+            let threadData = null;
+            let postCounter = 1;
+            let currentPage = 1;
+            let totalPages = 1;
+            const postsPerPage = 10;
+
+            // Initialize thread
+            async function initThread() {
+                if (!threadId) {
+                    document.getElementById("posts-container").innerHTML =
+                        '<div class="error">No thread ID provided</div>';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                        `/api/threads/${threadId}?page=${currentPage}&limit=${postsPerPage}`,
+                    );
+                    if (!response.ok) throw new Error("Thread not found");
+
+                    const data = await response.json();
+                    threadData = data;
+                    totalPages = data.totalPages || 1;
+                    renderThread(data);
+                    updatePagination();
+                } catch (error) {
+                    document.getElementById("posts-container").innerHTML =
+                        `<div class="error">Error loading thread: ${error.message}</div>`;
+                }
+            }
+
+            // Format post content with greentext and quotes
+            function formatPostContent(content, postId) {
+                if (!content) return "";
+
+                let formatted = content;
+
+                // Convert newlines to <br>
+                formatted = formatted.replace(/\n/g, "<br>");
+
+                // Convert greentext (lines starting with >)
+                formatted = formatted.replace(
+                    /^&gt;(.*)$/gm,
+                    '<span class="quote">&gt;$1</span>',
+                );
+                formatted = formatted.replace(
+                    /^>(.*)$/gm,
+                    '<span class="quote">&gt;$1</span>',
+                );
+
+                // Convert post quotes (>>number) - make them clickable for scrolling
+                formatted = formatted.replace(
+                    /&gt;&gt;(\d+)/g,
+                    '<a href="#p$1" class="quotelink" onclick="event.preventDefault(); scrollToAndHighlightPost($1)">&gt;&gt;$1</a>',
+                );
+                formatted = formatted.replace(
+                    />>(\d+)/g,
+                    '<a href="#p$1" class="quotelink" onclick="event.preventDefault(); scrollToAndHighlightPost($1)">&gt;&gt;$1</a>',
+                );
+
+                return formatted;
+            }
+
+            // Render thread and posts
+            function renderThread(data) {
+                const { thread, posts } = data;
+                const isFirstPage = currentPage === 1;
+                const allPosts = isFirstPage ? [thread, ...posts] : posts;
+
+                document.getElementById("thread-title").textContent =
+                    thread.subject || "No Subject";
+
+                let postsHTML = "";
+
+                // Render posts based on current page
+                allPosts.forEach((post, index) => {
+                    let postNumber;
+                    let isOP = false;
+
+                    if (isFirstPage) {
+                        postNumber = index + 1;
+                        isOP = index === 0;
+                    } else {
+                        // Calculate post number for subsequent pages
+                        postNumber =
+                            (currentPage - 1) * postsPerPage + index + 1;
+                    }
+
+                    const date = new Date(post.created_at);
+                    const formattedDate =
+                        date.toLocaleDateString("en-US", {
+                            month: "2-digit",
+                            day: "2-digit",
+                            year: "2-digit",
+                        }) +
+                        "(" +
+                        date.toLocaleDateString("en-US", {
+                            weekday: "short",
+                        }) +
+                        ")" +
+                        date.toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            hour12: false,
+                        });
+
+                    const postBody =
+                        post.image_url || post.content
+                            ? `
+                    <div class="post-body">
+                        ${post.image_url ? `<img src="${post.image_url}" alt="${isOP ? "Thread" : "Post"} image" class="post-image" onclick="enlargeImage('${post.image_url}')">` : ""}
+                        <div class="post-content">${formatPostContent(post.content, postNumber)}</div>
+                    </div>
+                `
+                            : `<div class="post-body"><div class="post-content">${formatPostContent(post.content, postNumber)}</div></div>`;
+
+                    postsHTML += `
+                    <div class="post" id="p${postNumber}" data-post-id="${postNumber}">
+                        <div class="post-header">
+                            ${isOP && post.subject ? `<span style="color: #0f0c5d; font-weight: bold;">${post.subject}</span> ` : ""}
+                            <span class="post-name">Anonymous</span>
+                            <span class="post-date">${formattedDate}</span>
+                            <span class="post-id">ID: ${generateRandomId()}</span>
+                            <span class="post-no">No. ${postNumber}</span>
+                            <a href="#p${postNumber}" class="quotelink" onclick="quotePost(${postNumber})" style="margin-left: 10px; font-size: 0.9em;">[Reply]</a>
+                        </div>
+                        ${postBody}
+                    </div>
+                `;
+
+                    // Add reply form after OP post (first post on first page)
+                    if (isFirstPage && isOP) {
+                        postsHTML += `
+                            <div class="reply-form">
+                                <h3>Post Reply</h3>
+                                <form id="reply-form">
+                                    <table>
+                                        <tr>
+                                            <td>Comment</td>
+                                            <td><textarea id="reply-content" placeholder="Your reply..." required></textarea></td>
+                                        </tr>
+                                        <tr>
+                                            <td>File</td>
+                                            <td>
+                                                <div class="file-upload-wrapper">
+                                                    <input type="file" id="reply-file" accept="image/*" class="file-upload-input">
+                                                    <button type="button" class="file-upload-button" onclick="document.getElementById('reply-file').click()">
+                                                        Choose File
+                                                    </button>
+                                                    <span id="file-name" style="margin-left: 10px; font-size: 0.9em; color: #666;"></span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td><button type="submit">Post</button></td>
+                                        </tr>
+                                    </table>
+                                </form>
+                            </div>
+                        `;
+                    }
+                });
+
+                document.getElementById("posts-container").innerHTML =
+                    postsHTML;
+
+                // Update post counter for new posts
+                postCounter = allPosts.length + 1;
+
+                // Re-attach form event listener since we moved it
+                const replyForm = document.getElementById("reply-form");
+                if (replyForm) {
+                    replyForm.addEventListener("submit", createReply);
+                }
+
+                // Re-attach file input event listener
+                const fileInput = document.getElementById("reply-file");
+                if (fileInput) {
+                    fileInput.addEventListener("change", function (e) {
+                        const fileName = document.getElementById("file-name");
+                        if (e.target.files.length > 0) {
+                            fileName.textContent = e.target.files[0].name;
+                        } else {
+                            fileName.textContent = "";
+                        }
+                    });
+                }
+
+                // Add hover events for quote links
+                addQuoteEvents();
+            }
+
+            // Generate random ID (like 4chan)
+            function generateRandomId() {
+                const chars =
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                let result = "";
+                for (let i = 0; i < 8; i++) {
+                    result += chars.charAt(
+                        Math.floor(Math.random() * chars.length),
+                    );
+                }
+                return result;
+            }
+
+            // Scroll to and highlight referenced post
+            function scrollToAndHighlightPost(postNumber) {
+                // Remove previous highlights
+                document.querySelectorAll(".post").forEach((p) => {
+                    p.classList.remove("highlighted", "referenced");
+                });
+
+                // Highlight the referenced post
+                const post = document.getElementById(`p${postNumber}`);
+                if (post) {
+                    post.classList.add("highlighted");
+                    post.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                    });
+
+                    // Remove highlight after 5 seconds
+                    setTimeout(() => {
+                        post.classList.remove("highlighted");
+                    }, 5000);
+                }
+            }
+
+            // Highlight referenced post (legacy function for compatibility)
+            function highlightPost(postNumber) {
+                scrollToAndHighlightPost(postNumber);
+            }
+
+            // Quote post (add >>number to reply box)
+            function quotePost(postNumber) {
+                const replyContent = document.getElementById("reply-content");
+                const currentText = replyContent.value;
+                const quoteText = `>>${postNumber}\n`;
+
+                if (currentText && !currentText.endsWith("\n")) {
+                    replyContent.value = currentText + "\n" + quoteText;
+                } else {
+                    replyContent.value = currentText + quoteText;
+                }
+
+                replyContent.focus();
+            }
+
+            // Add quote preview events
+            function addQuoteEvents() {
+                const quoteLinks = document.querySelectorAll(".quotelink");
+                const preview = document.getElementById("quote-preview");
+
+                quoteLinks.forEach((link) => {
+                    link.addEventListener("mouseenter", function (e) {
+                        const postNumber = this.textContent.replace(">>", "");
+                        const post = document.getElementById(`p${postNumber}`);
+
+                        if (post) {
+                            const postClone = post.cloneNode(true);
+                            postClone.style.maxWidth = "400px";
+                            postClone.style.margin = "0";
+                            preview.innerHTML = postClone.outerHTML;
+
+                            preview.style.display = "block";
+                            preview.style.left = e.pageX + 10 + "px";
+                            preview.style.top = e.pageY - 10 + "px";
+                        }
+                    });
+
+                    link.addEventListener("mouseleave", function () {
+                        preview.style.display = "none";
+                    });
+
+                    link.addEventListener("mousemove", function (e) {
+                        if (preview.style.display === "block") {
+                            preview.style.left = e.pageX + 10 + "px";
+                            preview.style.top = e.pageY - 10 + "px";
+                        }
+                    });
+                });
+            }
+
+            // Create reply
+            async function createReply(event) {
+                event.preventDefault();
+
+                const content = document.getElementById("reply-content").value;
+                const fileInput = document.getElementById("reply-file");
+
+                if (!content) {
+                    showModal("error", "Please enter reply content");
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append("content", content);
+                    if (fileInput.files[0]) {
+                        formData.append("image", fileInput.files[0]);
+                    }
+
+                    const response = await fetch(
+                        `/api/threads/${threadId}/posts`,
+                        {
+                            method: "POST",
+                            body: formData,
+                        },
+                    );
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(
+                            errorData.error || "Failed to create reply",
+                        );
+                    }
+
+                    // Reset form
+                    document.getElementById("reply-form").reset();
+                    document.getElementById("file-name").textContent = "";
+
+                    // Reload thread
+                    await initThread();
+
+                    showModal("success", "Reply posted successfully!");
+                } catch (error) {
+                    console.error("Error creating reply:", error);
+                    showModal("error", `Error: ${error.message}`);
+                }
+            }
+
+            // Show modal
+            function showModal(type, message) {
+                const modal = document.getElementById(`${type}-modal`);
+                const messageEl = document.getElementById(`${type}-message`);
+                messageEl.textContent = message;
+                modal.style.display = "flex";
+
+                // Auto-dismiss after 2 seconds
+                setTimeout(() => {
+                    closeModal(`${type}-modal`);
+                }, 2000);
+            }
+
+            // Close modal
+            function closeModal(modalId) {
+                document.getElementById(modalId).style.display = "none";
+            }
+
+            // Go back to board
+            function goBackToBoard() {
+                if (threadData && threadData.thread) {
+                    window.location.href = `board.html?board=${threadData.thread.board_slug}`;
+                } else {
+                    history.back();
+                }
+            }
+
+            // Update pagination controls
+            function updatePagination() {
+                const paginationHTML = `
+                    <button onclick="changePage(1)" ${currentPage === 1 ? "disabled" : ""}>« First</button>
+                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>‹ Prev</button>
+                    <span>Page ${currentPage} of ${totalPages}</span>
+                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>Next ›</button>
+                    <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""}>Last »</button>
+                `;
+
+                document.getElementById("pagination-bottom").innerHTML =
+                    paginationHTML;
+            }
+
+            // Change page
+            function changePage(page) {
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                initThread();
+                window.scrollTo(0, 0); // Scroll to top when changing pages
+            }
+
+            // Initialize when page loads
+            document.addEventListener("DOMContentLoaded", initThread);
+
+            // Enlarge image function
+            function enlargeImage(imageSrc) {
+                const overlay = document.createElement("div");
+                overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 2000;
+                cursor: pointer;
+            `;
+
+                const img = document.createElement("img");
+                img.src = imageSrc;
+                img.style.cssText = `
+                max-width: 90%;
+                max-height: 90%;
+                border: 2px solid white;
+            `;
+
+                overlay.appendChild(img);
+                document.body.appendChild(overlay);
+
+                overlay.onclick = () => document.body.removeChild(overlay);
+            }
+        </script>
+    </body>
+</html>
