@@ -1,4 +1,4 @@
-modules = ["web", "nodejs-20", "python-3.12"]
+modules = ["web", "nodejs-20"]
 run = "npm run dev"
 
 [nix]
@@ -25,4 +25,4 @@ localPort = 5000
 externalPort = 80
 
 [deployment]
-run = ["sh", "-c", "node server.js"]
+run = ["sh", "-c", "npm run dev"]
