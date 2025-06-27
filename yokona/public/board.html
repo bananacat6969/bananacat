@@ -375,6 +375,84 @@
             .refresh-btn:hover {
                 background-color: #5a6d8a;
             }
+
+            /* Mobile responsive styles */
+            @media screen and (max-width: 768px) {
+                .container {
+                    grid-template-columns: 1fr;
+                    width: 95%;
+                }
+
+                .left-sidebar {
+                    display: none;
+                }
+
+                .header {
+                    grid-column: 1;
+                }
+
+                .footer {
+                    grid-column: 1;
+                }
+
+                .nav a {
+                    margin: 0 8px;
+                    font-size: 0.9em;
+                }
+
+                .post-form {
+                    padding: 8px;
+                }
+
+                .thread-item {
+                    padding: 8px;
+                    font-size: 0.9em;
+                }
+
+                .thread-stats {
+                    font-size: 0.8em;
+                }
+
+                .pagination button {
+                    padding: 6px 10px;
+                    margin: 0 2px;
+                    font-size: 0.9em;
+                }
+            }
+
+            @media screen and (max-width: 480px) {
+                .container {
+                    width: 98%;
+                }
+
+                .header h1 {
+                    font-size: 1.5em;
+                }
+
+                .nav a {
+                    margin: 0 5px;
+                    font-size: 0.8em;
+                }
+
+                .post-form {
+                    padding: 6px;
+                }
+
+                .post-form input,
+                .post-form textarea {
+                    font-size: 16px; /* Prevents zoom on iOS */
+                }
+
+                .thread-item {
+                    padding: 6px;
+                    font-size: 0.85em;
+                }
+
+                .pagination button {
+                    padding: 4px 8px;
+                    font-size: 0.8em;
+                }
+            }
         </style>
     </head>
     <body>
