@@ -1022,149 +1022,43 @@
 
                     if (response.ok) {
                         alert('Thread deleted successfully');
-                        window.history.back();
+                        window.location.href = `board.html?board=${thread.board_slug}`;
                     } else {
                         const error = await response.json();
                         alert(error.error || 'Failed to delete thread');
                     }
+                ```text
+
                 } catch (error) {
                     alert('Error deleting thread: ' + error.message);
                 }
             }
 
-            // Create reply
-            async function createReply(event) {
-                event.preventDefault();
-
-                const content = document.getElementById("reply-content").value;
-                const fileInput = document.getElementById("reply-file");
-                const password = document.getElementById("password").value;
-
-                if (!content) {
-                    showModal("error", "Please enter reply content");
-                    return;
-                }
+            // Delete post
+            async function deletePost(postId) {
+                const password = prompt('Enter deletion password:');
+                if (!password) return;
 
                 try {
-                    const formData = new FormData();
-                    formData.append("content", content);
-                    formData.append("password", password);
-
-                    if (fileInput.files[0]) {
-                        formData.append("image", fileInput.files[0]);
-                    }
-
-                    const response = await fetch(
-                        `/api/threads/${threadId}/posts`,
-                        {
-                            method: "POST",
-                            body: formData,
+                    const response = await fetch(`/api/posts/${postId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
                         },
-                    );
+                        body: JSON.stringify({ password })
+                    });
 
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(
-                            errorData.error || "Failed to create reply",
-                        );
+                    if (response.ok) {
+                        alert('Post deleted successfully');
+                        loadThread(); // Reload the thread to update the display
+                    } else {
+                        const error = await response.json();
+                        alert(error.error || 'Failed to delete post');
                     }
-
-                    // Reset form
-                    document.getElementById("reply-form").reset();
-                    document.getElementById("file-name").textContent = "";
-
-                    // Reload thread
-                    await initThread();
-
-                    showModal("success", "Reply posted successfully!");
                 } catch (error) {
-                    console.error("Error creating reply:", error);
-                    showModal("error", `Error: ${error.message}`);
+                    alert('Error deleting post: ' + error.message);
                 }
             }
-
-            // Show modal
-            function showModal(type, message) {
-                const modal = document.getElementById(`${type}-modal`);
-                const messageEl = document.getElementById(`${type}-message`);
-                messageEl.textContent = message;
-                modal.style.display = "flex";
-
-                // Auto-dismiss after 2 seconds
-                setTimeout(() => {
-                    closeModal(`${type}-modal`);
-                }, 2000);
-            }
-
-            // Close modal
-            function closeModal(modalId) {
-                document.getElementById(modalId).style.display = "none";
-            }
-
-            // Go back to board
-            function goBackToBoard() {
-                if (threadData && threadData.thread) {
-                    window.location.href = `board.html?board=${threadData.thread.board_slug}`;
-                } else {
-                    history.back();
-                }
-            }
-
-            // Update pagination controls
-            function updatePagination() {
-                const paginationHTML = `
-                    <button onclick="changePage(1)" ${currentPage === 1 ? "disabled" : ""}>« First</button>
-                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>‹ Prev</button>
-                    <span>Page ${currentPage} of ${totalPages}</span>
-                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>Next ›</button>
-                    <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""}>Last »</button>
-                `;
-
-                document.getElementById("pagination-bottom").innerHTML =
-                    paginationHTML;
-            }
-
-            // Change page
-            function changePage(page) {
-                if (page < 1 || page > totalPages) return;
-                currentPage = page;
-                initThread();
-                window.scrollTo(0, 0); // Scroll to top when changing pages
-            }
-
-            // Initialize when page loads
-            document.addEventListener("DOMContentLoaded", initThread);
-
-            // Enlarge image function
-            function enlargeImage(imageSrc) {
-                const overlay = document.createElement("div");
-                overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 2000;
-                cursor: pointer;
-            `;
-
-                const img = document.createElement("img");
-                img.src = imageSrc;
-                img.style.cssText = `
-                max-width: 90%;
-                max-height: 90%;
-                border: 2px solid white;
-            `;
-
-                overlay.appendChild(img);
-                document.body.appendChild(overlay);
-
-                overlay.onclick = () => document.body.removeChild(overlay);
-            }
-        </script>
+</script>
     </body>
 </html>
