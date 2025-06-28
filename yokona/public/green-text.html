@@ -1,178 +1,186 @@
-<!DOCTYPE html>
-<html lang="en">
+
+<!doctype html>
+<html>
     <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>yokona - /gr/ - Green-Text</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>/gr/ - Green-Text - Yokona</title>
         <style>
             body {
-                font-family: Tahoma, Arial, sans-serif;
-                font-size: 13px;
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
+                background-color: #f0f0f0;
+                color: #000;
                 margin: 0;
-                padding: 10px;
-                background-color: #eef2ff;
-                color: #000080;
+                padding: 0;
+                line-height: 1.4;
             }
 
             .container {
-                max-width: 900px;
+                width: 90%;
+                max-width: 1200px;
                 margin: 0 auto;
-                background-color: #d6daf0;
-                padding: 20px;
-                border: 1px solid #b7c5d9;
+                display: grid;
+                grid-template-columns: 160px 1fr;
+                gap: 10px;
             }
 
+            /* Header */
             .header {
+                grid-column: 1 / 3;
+                background-color: #789922;
+                padding: 10px;
+                border-bottom: 3px solid #5a7a1a;
                 text-align: center;
-                border-bottom: 1px solid #b7c5d9;
-                padding-bottom: 10px;
-                margin-bottom: 20px;
             }
 
             .header h1 {
+                color: white;
                 margin: 0;
-                color: #af0a0f;
-                font-size: 24px;
             }
 
             .nav {
-                margin-top: 10px;
+                background-color: #d0e8b8;
+                padding: 5px;
+                margin-bottom: 10px;
+                text-align: center;
             }
 
             .nav a {
-                color: #34345c;
+                margin: 0 15px;
                 text-decoration: none;
-                margin: 0 10px;
+                color: #334;
                 font-weight: bold;
             }
 
-            .nav a:hover {
-                text-decoration: underline;
+            /* Left sidebar */
+            .left-sidebar {
+                background-color: #e8f5d8;
+                padding: 10px;
             }
 
-            .board-header {
-                text-align: center;
+            .vertical-ad {
+                width: 120px;
+                height: 600px;
+                background-color: #ccc;
                 margin-bottom: 20px;
-            }
-
-            .board-header h2 {
-                color: #af0a0f;
-                margin: 0;
-                font-size: 20px;
-            }
-
-            .board-controls {
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            /* Main content */
+            .main-content {
+                background-color: #fff;
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+
+            .top-ad {
+                width: 100%;
+                height: 90px;
+                background-color: #ccc;
                 margin-bottom: 20px;
-                flex-wrap: wrap;
-                gap: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            .board-title {
+                background-color: #789922;
+                color: white;
+                padding: 5px 10px;
+                margin-bottom: 10px;
             }
 
             .post-form {
-                background-color: #f0e0d6;
-                border: 1px solid #b7c5d9;
-                padding: 15px;
+                background-color: #e8f5d8;
+                padding: 10px;
                 margin-bottom: 20px;
+                border: 1px solid #ccc;
             }
 
-            .post-form h3 {
-                margin: 0 0 10px 0;
-                color: #af0a0f;
-            }
-
-            .form-row {
-                display: flex;
+            .post-form input,
+            .post-form textarea {
+                width: 100%;
                 margin-bottom: 10px;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 10px;
+                font-family: inherit;
+                padding: 5px;
+                border: 1px solid #ccc;
+                box-sizing: border-box;
             }
 
-            .form-row label {
-                min-width: 80px;
+            .file-upload-wrapper {
+                position: relative;
+                display: inline-block;
+                margin-bottom: 10px;
+            }
+
+            .file-upload-button {
+                background-color: #5a7a1a;
+                color: white;
+                padding: 8px 15px;
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
+                border-radius: 3px;
+                font-size: 0.9em;
+            }
+
+            .file-upload-button:hover {
+                background-color: #4a6a0a;
+            }
+
+            .file-upload-input {
+                position: absolute;
+                left: -9999px;
+            }
+
+            .post-form textarea {
+                height: 100px;
+            }
+
+            .post-form button {
+                background-color: #789922;
+                border: none;
+                padding: 8px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
                 font-weight: bold;
             }
 
-            .form-row input,
-            .form-row textarea {
-                padding: 3px;
-                border: 1px solid #aaa;
-                font-family: inherit;
-                font-size: inherit;
-            }
-
-            .form-row input[type="text"],
-            .form-row input[type="password"] {
-                width: 200px;
-            }
-
-            .form-row textarea {
-                width: 400px;
-                height: 80px;
-                resize: vertical;
-            }
-
-            .form-row input[type="file"] {
-                width: 200px;
-            }
-
-            .form-row input[type="checkbox"] {
-                width: auto;
-            }
-
-            .submit-btn {
-                background-color: #d6daf0;
-                border: 1px solid #aaa;
-                padding: 5px 15px;
-                cursor: pointer;
-                font-family: inherit;
-                font-size: inherit;
-            }
-
-            .submit-btn:hover {
-                background-color: #c0c4e0;
-            }
-
-            .thread-list {
-                border: 1px solid #b7c5d9;
+            .post-form button:hover {
+                background-color: #5a7a1a;
             }
 
             .thread {
-                background-color: #f0e0d6;
-                border-bottom: 1px solid #d9bfb7;
-                padding: 15px;
-                margin: 0;
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+                padding: 10px;
+                background-color: #f8fcf8;
             }
 
-            .thread:nth-child(even) {
-                background-color: #f5f5f5;
-            }
-
-            .thread-header {
-                margin-bottom: 10px;
-            }
-
-            .thread-subject {
-                color: #af0a0f;
+            .post-header {
                 font-weight: bold;
-                margin-right: 10px;
-                text-decoration: none;
+                margin-bottom: 5px;
+                color: #5a7a1a;
             }
 
-            .thread-subject:hover {
-                text-decoration: underline;
+            .post-id {
+                color: #888;
+                font-size: 0.9em;
             }
 
-            .thread-info {
-                color: #117743;
-                font-size: 11px;
+            .post-image {
+                max-width: 200px;
+                max-height: 200px;
+                margin: 5px 0;
+                border: 1px solid #ddd;
             }
 
-            .thread-content {
+            .post-content {
                 margin: 10px 0;
-                line-height: 1.4;
             }
 
             .green-text {
@@ -180,27 +188,133 @@
                 font-family: monospace;
             }
 
-            .quote-link {
-                color: #d00;
-                text-decoration: none;
-            }
-
-            .quote-link:hover {
-                text-decoration: underline;
-            }
-
-            .thread-image {
-                float: left;
-                margin: 0 15px 10px 0;
-                max-width: 200px;
-                max-height: 200px;
-                border: 1px solid #b7c5d9;
-            }
-
             .thread-stats {
-                font-size: 11px;
+                font-size: 0.9em;
                 color: #666;
                 margin-top: 10px;
+                padding-top: 5px;
+                border-top: 1px dashed #ccc;
+            }
+
+            .pagination {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            .pagination button {
+                background-color: #789922;
+                border: none;
+                padding: 5px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                margin: 0 5px;
+            }
+
+            .pagination button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+            .pagination span {
+                padding: 5px 10px;
+                background-color: #d0e8b8;
+                margin: 0 2px;
+                display: inline-block;
+            }
+
+            /* Footer */
+            .footer {
+                grid-column: 1 / 3;
+                background-color: #d0e8b8;
+                padding: 10px;
+                text-align: center;
+                margin-top: 20px;
+                font-size: 0.9em;
+            }
+
+            .footer a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #334;
+            }
+
+            .threads-header {
+                background-color: #c0d8a8;
+                font-weight: bold;
+                padding: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #999;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .refresh-btn {
+                background-color: #789922;
+                border: none;
+                padding: 5px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                border-radius: 3px;
+            }
+
+            .refresh-btn:hover {
+                background-color: #5a7a1a;
+            }
+
+            .thread-item {
+                border: 1px solid #999;
+                padding: 10px;
+                background-color: #f0fcf0;
+                margin-bottom: 10px;
+                cursor: pointer;
+            }
+
+            .thread-item:hover {
+                background-color: #e8f8e8;
+            }
+
+            .thread-item a {
+                font-weight: bold;
+                text-decoration: none;
+                color: #334;
+            }
+
+            .thread-item small {
+                color: #666;
+                margin-left: 10px;
+            }
+
+            .no-threads {
+                padding: 20px;
+                border: 1px solid #999;
+                background-color: #f0fcf0;
+                text-align: center;
+                font-size: 0.9em;
+            }
+
+            .board-info {
+                margin-bottom: 15px;
+                padding: 10px;
+                background-color: #e8f5d8;
+                border: 1px solid #ccc;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 20px;
+                font-style: italic;
+                color: #666;
+            }
+
+            .error {
+                color: #d32f2f;
+                background-color: #ffebee;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #ffcdd2;
             }
 
             .nsfw-tag {
@@ -228,76 +342,142 @@
                 background-color: #ff5252;
             }
 
-            .pagination {
-                text-align: center;
-                margin: 20px 0;
+            /* Password prompt overlay */
+            .password-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 3000;
+                display: none;
+                justify-content: center;
+                align-items: center;
             }
 
-            .pagination button {
-                background-color: #d6daf0;
-                border: 1px solid #aaa;
-                padding: 5px 10px;
-                margin: 0 2px;
+            .password-modal {
+                background-color: #f0fcf0;
+                border: 2px solid #789922;
+                padding: 20px;
+                width: 300px;
+                text-align: center;
+                font-family: inherit;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .password-modal h3 {
+                margin-top: 0;
+                color: #5a7a1a;
+            }
+
+            .password-modal input {
+                width: 100%;
+                padding: 8px;
+                margin: 10px 0;
+                border: 1px solid #ccc;
+                font-family: inherit;
+                box-sizing: border-box;
+            }
+
+            .password-modal button {
+                background-color: #789922;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                margin: 5px;
                 cursor: pointer;
                 font-family: inherit;
             }
 
-            .pagination button:hover {
-                background-color: #c0c4e0;
+            .password-modal button:hover {
+                background-color: #5a7a1a;
             }
 
-            .pagination button:disabled {
-                background-color: #eee;
-                color: #999;
-                cursor: not-allowed;
+            .password-modal .cancel-btn {
+                background-color: #ccc;
+                color: #333;
             }
 
-            .footer {
-                text-align: center;
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #b7c5d9;
-                font-size: 11px;
-                color: #666;
+            .password-modal .cancel-btn:hover {
+                background-color: #999;
             }
 
-            .footer a {
-                color: #34345c;
-                text-decoration: none;
-            }
-
-            .footer a:hover {
-                text-decoration: underline;
-            }
-
-            /* Mobile Responsive */
+            /* Mobile responsive styles */
             @media screen and (max-width: 768px) {
                 .container {
-                    padding: 10px;
-                    margin: 0;
+                    grid-template-columns: 1fr;
+                    width: 95%;
                 }
 
-                .form-row {
-                    flex-direction: column;
-                    align-items: flex-start;
+                .left-sidebar {
+                    display: none;
                 }
 
-                .form-row input,
-                .form-row textarea {
-                    width: 100%;
-                    max-width: 300px;
+                .header {
+                    grid-column: 1;
                 }
 
-                .board-controls {
-                    flex-direction: column;
-                    align-items: stretch;
+                .footer {
+                    grid-column: 1;
                 }
 
-                .thread-image {
-                    float: none;
-                    display: block;
-                    margin: 0 0 10px 0;
-                    max-width: 100%;
+                .nav a {
+                    margin: 0 8px;
+                    font-size: 0.9em;
+                }
+
+                .post-form {
+                    padding: 8px;
+                }
+
+                .thread-item {
+                    padding: 8px;
+                    font-size: 0.9em;
+                }
+
+                .thread-stats {
+                    font-size: 0.8em;
+                }
+
+                .pagination button {
+                    padding: 6px 10px;
+                    margin: 0 2px;
+                    font-size: 0.9em;
+                }
+            }
+
+            @media screen and (max-width: 480px) {
+                .container {
+                    width: 98%;
+                }
+
+                .header h1 {
+                    font-size: 1.5em;
+                }
+
+                .nav a {
+                    margin: 0 5px;
+                    font-size: 0.8em;
+                }
+
+                .post-form {
+                    padding: 6px;
+                }
+
+                .post-form input,
+                .post-form textarea {
+                    font-size: 16px; /* Prevents zoom on iOS */
+                }
+
+                .thread-item {
+                    padding: 6px;
+                    font-size: 0.85em;
+                }
+
+                .pagination button {
+                    padding: 4px 8px;
+                    font-size: 0.8em;
                 }
             }
         </style>
@@ -315,59 +495,90 @@
                 </div>
             </div>
 
-            <div class="board-header">
-                <h2>🍀 /gr/ - Green-Text Stories</h2>
-                <p>Share your green-text stories and anecdotes</p>
+            <!-- Left sidebar -->
+            <div class="left-sidebar">
+                <div class="vertical-ad"></div>
             </div>
 
-            <div class="board-controls">
-                <div>
-                    <button onclick="togglePostForm()">📝 Start a New Green-Text</button>
-                    <button onclick="window.location.href='catalog.html?board=gr'">📋 Catalog</button>
-                </div>
-                <div>
-                    <button onclick="loadThreads()">🔄 Refresh</button>
-                </div>
-            </div>
+            <!-- Main content -->
+            <div class="main-content">
+                <div class="top-ad"></div>
 
-            <div id="post-form" class="post-form" style="display: none;">
-                <h3>📝 Post a Green-Text Story</h3>
-                <form id="thread-form" enctype="multipart/form-data">
-                    <div class="form-row">
-                        <label>Subject:</label>
-                        <input type="text" id="subject" name="subject" placeholder="Optional subject">
-                    </div>
-                    <div class="form-row">
-                        <label>Story:</label>
-                        <textarea id="content" name="content" placeholder="Share your green-text story..." required></textarea>
-                    </div>
-                    <div class="form-row">
-                        <label>Image:</label>
-                        <input type="file" id="image" name="image" accept="image/*">
-                    </div>
-                    <div class="form-row">
-                        <label>Password:</label>
-                        <input type="password" id="password" name="password" placeholder="Optional deletion password">
-                    </div>
-                    <div class="form-row">
-                        <label></label>
-                        <div>
-                            <input type="checkbox" id="isNsfw" name="isNsfw">
+                <div class="board-title">🍀 /gr/ - Green-Text Stories</div>
+                <div class="board-info">
+                    Share your green-text stories and anecdotes. Use &gt; to start green text lines.
+                </div>
+
+                <div class="post-form">
+                    <h3>New Green-Text Story</h3>
+                    <form id="thread-form">
+                        <input
+                            type="text"
+                            id="thread-subject"
+                            placeholder="Subject (optional)"
+                        />
+                        <textarea
+                            id="thread-content"
+                            placeholder="Share your green-text story... Use > to start green text lines"
+                            required
+                        ></textarea>
+                        <div class="file-upload-wrapper">
+                            <input
+                                type="file"
+                                id="thread-file"
+                                accept="image/*"
+                                class="file-upload-input"
+                            />
+                            <button
+                                type="button"
+                                class="file-upload-button"
+                                onclick="document.getElementById('thread-file').click()"
+                            >
+                                Choose Image
+                            </button>
+                            <span
+                                id="file-name"
+                                style="
+                                    margin-left: 10px;
+                                    font-size: 0.9em;
+                                    color: #666;
+                                "
+                            ></span>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label>Password:</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Optional deletion password"
+                                style="width: 100%; margin-top: 5px; padding: 5px; border: 1px solid #ccc; box-sizing: border-box;"
+                            />
+                        </div>
+                        <div style="margin-bottom: 10px; display: flex; align-items: center;">
+                            <input type="checkbox" id="isNsfw" name="isNsfw" style="margin-right: 5px;" />
                             <label for="isNsfw">Mark as NSFW</label>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <label></label>
-                        <button type="submit" class="submit-btn">Post Green-Text</button>
-                    </div>
-                </form>
-            </div>
+                        <div>
+                            <button type="submit">Post Story</button>
+                        </div>
+                    </form>
+                </div>
 
-            <div id="threads-container">
-                <div class="loading">Loading green-text stories...</div>
-            </div>
+                <div class="threads-header" id="threads-header">
+                    <span>📋 Green-Text Stories</span>
+                    <button class="refresh-btn" onclick="refreshThreads()">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div id="threads-container">
+                    <div class="loading">Loading green-text stories...</div>
+                </div>
 
-            <div class="pagination" id="pagination"></div>
+                <div id="pagination-container" class="pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
 
             <div class="footer">
                 <a href="faq.html">FAQ</a> |
@@ -378,15 +589,28 @@
             </div>
         </div>
 
+        <!-- Password Prompt Overlay -->
+        <div class="password-overlay" id="password-overlay">
+            <div class="password-modal">
+                <h3>Delete Thread</h3>
+                <p>Enter deletion password:</p>
+                <input type="password" id="delete-password" placeholder="Password" />
+                <div>
+                    <button onclick="confirmDelete()">Delete</button>
+                    <button class="cancel-btn" onclick="cancelDelete()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
         <script>
+            const boardSlug = 'gr';
             let currentPage = 1;
             let totalPages = 1;
-            const boardSlug = 'gr';
+            let deleteThreadId = null;
 
-            // Toggle post form
-            function togglePostForm() {
-                const form = document.getElementById('post-form');
-                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            // Initialize board
+            async function initBoard() {
+                await loadThreads();
             }
 
             // Format green-text content
@@ -397,19 +621,19 @@
                         return `<span class="green-text">${line}</span>`;
                     }
                     // Handle quote links
-                    line = line.replace(/&gt;&gt;(\d+)/g, '<a href="#" class="quote-link">&gt;&gt;$1</a>');
+                    line = line.replace(/&gt;&gt;(\d+)/g, '<a href="#" style="color: #d00; text-decoration: none;">&gt;&gt;$1</a>');
                     return line;
                 }).join('<br>');
             }
 
             // Load threads
             async function loadThreads() {
-                const threadsContainer = document.getElementById('threads-container');
+                const threadsContainer = document.getElementById("threads-container");
                 threadsContainer.innerHTML = '<div class="loading">Loading green-text stories...</div>';
 
                 try {
                     const response = await fetch(`/api/boards/${boardSlug}/threads?page=${currentPage}&limit=10`);
-                    if (!response.ok) throw new Error('Failed to load threads');
+                    if (!response.ok) throw new Error("Failed to load threads");
 
                     const data = await response.json();
                     totalPages = data.totalPages;
@@ -417,97 +641,88 @@
                     updatePagination();
                 } catch (error) {
                     threadsContainer.innerHTML = `
-                        <div class="error">
-                            Error loading threads: ${error.message}
-                        </div>
-                    `;
+                    <div class="error">
+                        Error loading threads: ${error.message}
+                    </div>
+                `;
                 }
             }
 
             // Render threads
             function renderThreads(threads) {
-                const threadsContainer = document.getElementById('threads-container');
+                const threadsContainer = document.getElementById("threads-container");
 
                 if (threads.length === 0) {
-                    threadsContainer.innerHTML = '<div class="loading">No green-text stories found</div>';
+                    threadsContainer.innerHTML = `
+                    <div class="no-threads">
+                        No green-text stories found. Be the first to post!
+                    </div>
+                `;
                     return;
                 }
 
-                let threadsHTML = '<div class="thread-list">';
-
-                threads.forEach(thread => {
-                    const postDate = new Date(thread.created_at).toLocaleString();
+                let threadsHTML = "";
+                threads.forEach((thread) => {
+                    const postDate = new Date(thread.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                    });
                     const nsfwTag = thread.is_nsfw ? '<span class="nsfw-tag">NSFW</span>' : '';
-                    const deleteBtn = '<button class="delete-btn" onclick="deleteThread(' + thread.id + ')">Delete</button>';
-                    
+                    const deleteBtn = '<button class="delete-btn" onclick="deleteThread(' + thread.id + ', event)">Delete</button>';
+
                     threadsHTML += `
-                        <div class="thread">
-                            <div class="thread-header">
-                                <a href="thread.html?thread=${thread.id}" class="thread-subject">
-                                    ${thread.subject || 'Green-Text Story'}
-                                </a>
-                                ${nsfwTag}
-                                ${deleteBtn}
-                                <div class="thread-info">
-                                    Posted: ${postDate} | Replies: ${thread.reply_count || 0} | Views: ${thread.views || 0}
-                                </div>
-                            </div>
-                            ${thread.image_data ? `<img src="/api/images/thread/${thread.id}" class="thread-image" alt="Thread image">` : ''}
-                            <div class="thread-content">
-                                ${formatGreenText(thread.content)}
-                            </div>
-                            <div style="clear: both;"></div>
+                    <div class="thread-item" onclick="viewThread(${thread.id})">
+                        <a href="thread.html?thread=${thread.id}">${thread.subject || "Green-Text Story"}</a>
+                        <small>by Anonymous</small>
+                        <div class="thread-stats">
+                            ${postDate} | ${thread.reply_count || 0} replies | ${thread.views || 0} views
+                            ${nsfwTag}
+                            ${deleteBtn}
                         </div>
-                    `;
+                    </div>
+                `;
                 });
 
-                threadsHTML += '</div>';
                 threadsContainer.innerHTML = threadsHTML;
             }
 
             // Update pagination
             function updatePagination() {
-                const pagination = document.getElementById('pagination');
-                
-                if (totalPages <= 1) {
-                    pagination.innerHTML = '';
-                    return;
-                }
+                const paginationContainer = document.getElementById("pagination-container");
 
-                let paginationHTML = '';
-                
-                if (currentPage > 1) {
-                    paginationHTML += `<button onclick="changePage(${currentPage - 1})">Previous</button>`;
-                }
-                
-                for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-                    if (i === currentPage) {
-                        paginationHTML += `<button disabled>${i}</button>`;
-                    } else {
-                        paginationHTML += `<button onclick="changePage(${i})">${i}</button>`;
-                    }
-                }
-                
-                if (currentPage < totalPages) {
-                    paginationHTML += `<button onclick="changePage(${currentPage + 1})">Next</button>`;
-                }
-                
-                pagination.innerHTML = paginationHTML;
+                let paginationHTML = `
+                <button onclick="changePage(1)" ${currentPage === 1 ? "disabled" : ""}>« First</button>
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>‹ Prev</button>
+                <span>Page ${currentPage} of ${totalPages}</span>
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>Next ›</button>
+                <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""}>Last »</button>
+            `;
+
+                paginationContainer.innerHTML = paginationHTML;
             }
 
             // Change page
             function changePage(page) {
+                if (page < 1 || page > totalPages) return;
                 currentPage = page;
                 loadThreads();
             }
 
             // Delete thread
-            async function deleteThread(threadId) {
-                const password = prompt('Enter deletion password:');
+            function deleteThread(threadId, event) {
+                event.stopPropagation();
+                deleteThreadId = threadId;
+                document.getElementById('password-overlay').style.display = 'flex';
+                document.getElementById('delete-password').focus();
+            }
+
+            async function confirmDelete() {
+                const password = document.getElementById('delete-password').value;
                 if (!password) return;
 
                 try {
-                    const response = await fetch(`/api/threads/${threadId}`, {
+                    const response = await fetch(`/api/threads/${deleteThreadId}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
@@ -525,45 +740,102 @@
                 } catch (error) {
                     alert('Error deleting thread: ' + error.message);
                 }
+
+                cancelDelete();
             }
 
-            // Handle form submission
-            document.getElementById('thread-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const formData = new FormData();
-                formData.append('subject', document.getElementById('subject').value);
-                formData.append('content', document.getElementById('content').value);
-                formData.append('password', document.getElementById('password').value);
-                formData.append('isNsfw', document.getElementById('isNsfw').checked);
-                
-                const imageFile = document.getElementById('image').files[0];
-                if (imageFile) {
-                    formData.append('image', imageFile);
+            function cancelDelete() {
+                document.getElementById('password-overlay').style.display = 'none';
+                document.getElementById('delete-password').value = '';
+                deleteThreadId = null;
+            }
+
+            // Create new thread
+            async function createThread(event) {
+                event.preventDefault();
+
+                const subject = document.getElementById("thread-subject").value;
+                const content = document.getElementById("thread-content").value;
+                const fileInput = document.getElementById("thread-file");
+                const password = document.getElementById("password").value;
+                const isNsfw = document.getElementById("isNsfw").checked;
+
+                if (!content) {
+                    alert("Please enter some content for your story");
+                    return;
                 }
 
                 try {
+                    const formData = new FormData();
+                    formData.append("subject", subject);
+                    formData.append("content", content);
+                    formData.append("password", password);
+                    formData.append("isNsfw", isNsfw);
+                    if (fileInput.files[0]) {
+                        formData.append("image", fileInput.files[0]);
+                    }
+
                     const response = await fetch(`/api/boards/${boardSlug}/threads`, {
-                        method: 'POST',
-                        body: formData
+                        method: "POST",
+                        body: formData,
                     });
 
-                    if (response.ok) {
-                        document.getElementById('thread-form').reset();
-                        togglePostForm();
-                        loadThreads();
-                        alert('Green-text story posted successfully!');
-                    } else {
-                        const error = await response.json();
-                        alert(error.error || 'Failed to post thread');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || "Failed to create thread");
                     }
+
+                    // Reset form
+                    document.getElementById("thread-form").reset();
+
+                    // Reload threads
+                    currentPage = 1;
+                    await loadThreads();
+
+                    alert("Green-text story posted successfully!");
                 } catch (error) {
-                    alert('Error posting thread: ' + error.message);
+                    console.error("Error creating thread:", error);
+                    alert(`Error: ${error.message}`);
+                }
+            }
+
+            // View thread
+            function viewThread(threadId) {
+                if (event) {
+                    event.preventDefault();
+                }
+                window.location.href = `thread.html?thread=${threadId}`;
+            }
+
+            // Refresh threads
+            function refreshThreads() {
+                loadThreads();
+            }
+
+            // Handle file selection
+            document.getElementById("thread-file").addEventListener("change", function (e) {
+                const fileName = document.getElementById("file-name");
+                if (e.target.files.length > 0) {
+                    fileName.textContent = e.target.files[0].name;
+                } else {
+                    fileName.textContent = "";
                 }
             });
 
-            // Load threads on page load
-            document.addEventListener('DOMContentLoaded', loadThreads);
+            // Handle Enter key in password input
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('delete-password').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        confirmDelete();
+                    }
+                });
+            });
+
+            // Initialize when page loads
+            document.addEventListener("DOMContentLoaded", initBoard);
+
+            // Set up form submission
+            document.getElementById("thread-form").addEventListener("submit", createThread);
         </script>
     </body>
 </html>
