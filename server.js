@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -15,7 +14,7 @@ const hasPostgreSQL = !!process.env.DATABASE_URL;
 if (hasPostgreSQL) {
   // PostgreSQL for production
   const { Pool } = require('pg');
-  
+
   db = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
@@ -28,21 +27,21 @@ if (hasPostgreSQL) {
     statement_timeout: 10000, // 10 second statement timeout
     query_timeout: 10000, // 10 second query timeout
   });
-  
+
   // Handle pool errors with reconnection
   db.on('error', (err) => {
     console.error('Unexpected error on idle client:', err.message);
     // Don't exit the process, let it recover
   });
-  
+
   db.on('connect', () => {
     console.log('New client connected to the database');
   });
-  
+
   db.on('remove', () => {
     console.log('Client removed from pool');
   });
-  
+
   console.log('Using PostgreSQL database');
 } else {
   // SQLite for development (Replit)
@@ -58,23 +57,23 @@ app.use((req, res, next) => {
     const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
     const userAgent = req.headers['user-agent'] || '';
     const sessionKey = `${clientIP}-${userAgent}`;
-    
+
     // Track unique sessions (approximates unique visitors)
     visitorSessions.add(sessionKey);
-    
+
     // Track daily visitors
     const today = new Date().toDateString();
     if (!dailyVisitors.has(today)) {
       dailyVisitors.set(today, new Set());
     }
     dailyVisitors.get(today).add(sessionKey);
-    
+
     // Clean up sessions older than 30 minutes
     setTimeout(() => {
       visitorSessions.delete(sessionKey);
     }, 30 * 60 * 1000);
   }
-  
+
   next();
 });
 
@@ -99,7 +98,7 @@ setInterval(() => {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
   const weekAgoKey = weekAgo.toDateString();
-  
+
   for (const [date] of dailyVisitors) {
     if (date < weekAgoKey) {
       dailyVisitors.delete(date);
@@ -120,13 +119,13 @@ async function query(sql, params = [], retries = 3) {
             setTimeout(() => reject(new Error('Connection timeout')), 8000)
           )
         ]);
-        
+
         const result = await client.query(sql, params);
         client.release();
         return result.rows;
       } catch (error) {
         console.error(`Database query attempt ${attempt}/${retries} failed:`, error.message);
-        
+
         if (client) {
           try {
             client.release(true); // Release with error flag
@@ -134,11 +133,11 @@ async function query(sql, params = [], retries = 3) {
             console.error('Error releasing client:', releaseError.message);
           }
         }
-        
+
         if (attempt === retries) {
           throw error;
         }
-        
+
         // Exponential backoff with jitter
         const delay = Math.pow(2, attempt) * 500 + Math.random() * 500;
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -304,11 +303,11 @@ app.get('/api/boards/:slug', async (req, res) => {
     const boards = hasPostgreSQL 
       ? await query('SELECT * FROM boards WHERE slug = $1', [slug])
       : await query('SELECT * FROM boards WHERE slug = ?', [slug]);
-    
+
     if (boards.length === 0) {
       return res.status(404).json({ error: 'Board not found' });
     }
-    
+
     res.json(boards[0]);
   } catch (error) {
     console.error('Error fetching board:', error.message);
@@ -324,7 +323,7 @@ app.get('/api/boards/:slug/threads', async (req, res) => {
   try {
     const { slug } = req.params;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 15;
     const offset = (page - 1) * limit;
 
     const threads = hasPostgreSQL
@@ -373,7 +372,7 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
     const boards = hasPostgreSQL
       ? await query('SELECT * FROM boards WHERE slug = $1', [slug])
       : await query('SELECT * FROM boards WHERE slug = ?', [slug]);
-    
+
     if (boards.length === 0) {
       return res.status(404).json({ error: 'Board not found' });
     }
@@ -386,12 +385,12 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
       if (!req.file.mimetype.startsWith('image/')) {
         return res.status(400).json({ error: 'Only image files are allowed' });
       }
-      
+
       // Validate file size (5MB limit already handled by multer)
       if (req.file.size > 5 * 1024 * 1024) {
         return res.status(400).json({ error: 'File size too large (max 5MB)' });
       }
-      
+
       imageData = req.file.buffer;
       imageType = req.file.mimetype;
     }
@@ -423,7 +422,7 @@ app.get('/api/threads/:id', async (req, res) => {
     const threads = hasPostgreSQL
       ? await query('SELECT * FROM threads WHERE id = $1', [id])
       : await query('SELECT * FROM threads WHERE id = ?', [id]);
-    
+
     if (threads.length === 0) {
       return res.status(404).json({ error: 'Thread not found' });
     }
@@ -472,7 +471,7 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
     const threads = hasPostgreSQL
       ? await query('SELECT * FROM threads WHERE id = $1', [id])
       : await query('SELECT * FROM threads WHERE id = ?', [id]);
-    
+
     if (threads.length === 0) {
       return res.status(404).json({ error: 'Thread not found' });
     }
@@ -484,12 +483,12 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
       if (!req.file.mimetype.startsWith('image/')) {
         return res.status(400).json({ error: 'Only image files are allowed' });
       }
-      
+
       // Validate file size (5MB limit already handled by multer)
       if (req.file.size > 5 * 1024 * 1024) {
         return res.status(400).json({ error: 'File size too large (max 5MB)' });
       }
-      
+
       imageData = req.file.buffer;
       imageType = req.file.mimetype;
     }
@@ -532,13 +531,13 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
 app.get('/api/latest-posts', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 15;
     const offset = (page - 1) * limit;
 
     const countResult = hasPostgreSQL
       ? await query(`SELECT COUNT(*) as total FROM threads`)
       : await query(`SELECT COUNT(*) as total FROM threads`);
-    
+
     const total = countResult[0].total || countResult[0].count || 0;
     const totalPages = Math.ceil(total / limit);
 
@@ -566,7 +565,7 @@ app.get('/api/latest-posts', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching latest posts:', error.message);
-    
+
     // Return empty data instead of error to keep the frontend functional
     res.json({
       posts: [],
@@ -582,17 +581,17 @@ app.get('/api/latest-posts', async (req, res) => {
 app.get('/api/images/thread/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const result = hasPostgreSQL
       ? await query('SELECT image_data, image_type FROM threads WHERE id = $1', [id])
       : await query('SELECT image_data, image_type FROM threads WHERE id = ?', [id]);
-    
+
     if (result.length === 0 || !result[0].image_data) {
       return res.status(404).json({ error: 'Image not found' });
     }
-    
+
     const { image_data, image_type } = result[0];
-    
+
     res.set('Content-Type', image_type);
     res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.send(image_data);
@@ -605,17 +604,17 @@ app.get('/api/images/thread/:id', async (req, res) => {
 app.get('/api/images/post/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const result = hasPostgreSQL
       ? await query('SELECT image_data, image_type FROM posts WHERE id = $1', [id])
       : await query('SELECT image_data, image_type FROM posts WHERE id = ?', [id]);
-    
+
     if (result.length === 0 || !result[0].image_data) {
       return res.status(404).json({ error: 'Image not found' });
     }
-    
+
     const { image_data, image_type } = result[0];
-    
+
     res.set('Content-Type', image_type);
     res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     res.send(image_data);
@@ -631,15 +630,15 @@ app.get('/api/stats', async (req, res) => {
     const threadsCount = hasPostgreSQL
       ? await query('SELECT COUNT(*) as count FROM threads')
       : await query('SELECT COUNT(*) as count FROM threads');
-    
+
     const postsCount = hasPostgreSQL
       ? await query('SELECT COUNT(*) as count FROM posts')
       : await query('SELECT COUNT(*) as count FROM posts');
-    
+
     const todayThreads = hasPostgreSQL
       ? await query(`SELECT COUNT(*) as count FROM threads WHERE created_at >= CURRENT_DATE`)
       : await query(`SELECT COUNT(*) as count FROM threads WHERE created_at >= date('now')`);
-    
+
     const todayPosts = hasPostgreSQL
       ? await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= CURRENT_DATE`)
       : await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= date('now')`);
@@ -648,7 +647,7 @@ app.get('/api/stats', async (req, res) => {
     const today = new Date().toDateString();
     const todayVisitors = dailyVisitors.get(today)?.size || 0;
     const currentOnline = visitorSessions.size;
-    
+
     // Estimate total unique visitors (based on content activity and some baseline)
     const totalContent = parseInt(threadsCount[0].count || 0) + parseInt(postsCount[0].count || 0);
     const estimatedTotalVisitors = Math.max(
@@ -667,12 +666,12 @@ app.get('/api/stats', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching stats:', error.message);
-    
+
     // Return fallback stats with current visitor data
     const today = new Date().toDateString();
     const todayVisitors = dailyVisitors.get(today)?.size || 0;
     const currentOnline = visitorSessions.size;
-    
+
     res.json({
       totalThreads: 0,
       totalPosts: 0,
@@ -701,7 +700,7 @@ app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
-  
+
   // For any other route, serve the home page (client-side routing)
   res.sendFile(path.join(__dirname, 'yokona/public/home.html'));
 });
@@ -728,14 +727,14 @@ app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Database: ${hasPostgreSQL ? 'PostgreSQL' : 'SQLite'}`);
-  
+
   if (hasPostgreSQL) {
     console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
   }
-  
+
   try {
     await initDB();
-    
+
     // Run migration to binary storage if using PostgreSQL
     if (hasPostgreSQL) {
       const { migrateDatabase } = require('./migrate-to-binary');
