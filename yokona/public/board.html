@@ -809,7 +809,14 @@
                         year: "numeric",
                     });
                     const nsfwTag = thread.is_nsfw ? '<span class="nsfw-tag">NSFW</span>' : '';
-                    const deleteBtn = '<button class="delete-btn" onclick="deleteThread(' + thread.id + ', event)">Delete</button>';
+                    const menuBtn = `
+                        <div class="thread-menu" style="position: relative; display: inline-block;">
+                            <button class="menu-dots" onclick="toggleMenu(${thread.id}, event)" style="background: none; border: none; font-size: 16px; cursor: pointer; padding: 2px 6px;">⋯</button>
+                            <div class="menu-dropdown" id="menu-${thread.id}" style="display: none; position: absolute; right: 0; background: white; border: 1px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;">
+                                <button onclick="deleteThread(${thread.id}, event)" style="display: block; width: 100%; background: none; border: none; padding: 8px 12px; text-align: left; cursor: pointer; font-size: 12px;">Delete</button>
+                            </div>
+                        </div>
+                    `;
 
                     threadsHTML += `
                     <div class="thread-item" onclick="viewThread(${thread.id})">
@@ -818,7 +825,7 @@
                         <div class="thread-stats">
                             ${postDate} | ${thread.reply_count || 0} replies |  ${thread.views || 0} views
                             ${nsfwTag}
-                            ${deleteBtn}
+                            ${menuBtn}
                         </div>
                     </div>
                 `;
@@ -960,6 +967,24 @@
                     showModal("error", `Error: ${error.message}`);
                 }
             }
+
+            // Menu toggle function
+            function toggleMenu(threadId, event) {
+                event.stopPropagation();
+                const menu = document.getElementById(`menu-${threadId}`);
+                // Close all other menus
+                document.querySelectorAll('.menu-dropdown').forEach(m => {
+                    if (m.id !== `menu-${threadId}`) m.style.display = 'none';
+                });
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }
+
+            // Close menus when clicking outside
+            document.addEventListener('click', function() {
+                document.querySelectorAll('.menu-dropdown').forEach(m => {
+                    m.style.display = 'none';
+                });
+            });
 
             // View thread
             function viewThread(threadId) {
