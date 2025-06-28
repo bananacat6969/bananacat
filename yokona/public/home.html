@@ -896,12 +896,13 @@
 
             let currentHomePage = 1;
             let totalHomePages = 1;
+            const homePostsPerPage = 15;
 
             // Load latest posts
             async function loadLatestPosts() {
                 try {
                     const response = await fetch(
-                        `/api/latest-posts?page=${currentHomePage}&limit=10`,
+                        `/api/latest-posts?page=${currentHomePage}&limit=${homePostsPerPage}`,
                     );
                     if (!response.ok)
                         throw new Error("Failed to load latest posts");
