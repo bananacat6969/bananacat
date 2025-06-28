@@ -19,12 +19,14 @@ if (hasPostgreSQL) {
   db = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    max: 5, // Reduced max connections for Render
-    min: 1, // Keep minimum connections
-    idleTimeoutMillis: 10000, // Shorter idle timeout
-    connectionTimeoutMillis: 5000, // Longer connection timeout
-    acquireTimeoutMillis: 10000, // How long to wait for a connection
-    allowExitOnIdle: false,
+    max: 3, // Further reduced for stability
+    min: 0, // Allow pool to scale down to 0
+    idleTimeoutMillis: 30000, // Longer idle timeout
+    connectionTimeoutMillis: 10000, // Increased connection timeout
+    acquireTimeoutMillis: 15000, // Longer wait for connection
+    allowExitOnIdle: true, // Allow graceful shutdown
+    statement_timeout: 10000, // 10 second statement timeout
+    query_timeout: 10000, // 10 second query timeout
   });
   
   // Handle pool errors with reconnection
@@ -61,17 +63,25 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// Database helper functions with retry logic
+// Database helper functions with improved retry logic
 async function query(sql, params = [], retries = 3) {
   if (hasPostgreSQL) {
     for (let attempt = 1; attempt <= retries; attempt++) {
       let client;
       try {
-        client = await db.connect();
+        // Add timeout to connection acquisition
+        client = await Promise.race([
+          db.connect(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Connection timeout')), 8000)
+          )
+        ]);
+        
         const result = await client.query(sql, params);
+        client.release();
         return result.rows;
       } catch (error) {
-        console.error(`Database query attempt ${attempt} failed:`, error.message);
+        console.error(`Database query attempt ${attempt}/${retries} failed:`, error.message);
         
         if (client) {
           try {
@@ -85,16 +95,9 @@ async function query(sql, params = [], retries = 3) {
           throw error;
         }
         
-        // Wait before retry with exponential backoff
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
-      } finally {
-        if (client) {
-          try {
-            client.release();
-          } catch (releaseError) {
-            console.error('Error in finally release:', releaseError.message);
-          }
-        }
+        // Exponential backoff with jitter
+        const delay = Math.pow(2, attempt) * 500 + Math.random() * 500;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   } else {
