@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -93,6 +94,12 @@ const upload = multer({
 const visitorSessions = new Set();
 const dailyVisitors = new Map();
 
+// Password hashing utility
+function hashPassword(password) {
+  if (!password) return null;
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
 // Clean up old daily visitor data (keep last 7 days)
 setInterval(() => {
   const weekAgo = new Date();
@@ -179,6 +186,8 @@ async function initDB() {
           image_type VARCHAR(50),
           reply_count INTEGER DEFAULT 0,
           views INTEGER DEFAULT 0,
+          is_nsfw BOOLEAN DEFAULT FALSE,
+          password_hash VARCHAR(255),
           last_bump_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -191,6 +200,7 @@ async function initDB() {
           content TEXT NOT NULL,
           image_data BYTEA,
           image_type VARCHAR(50),
+          password_hash VARCHAR(255),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
@@ -216,6 +226,8 @@ async function initDB() {
           image_type TEXT,
           reply_count INTEGER DEFAULT 0,
           views INTEGER DEFAULT 0,
+          is_nsfw INTEGER DEFAULT 0,
+          password_hash TEXT,
           last_bump_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (board_slug) REFERENCES boards(slug)
@@ -229,6 +241,7 @@ async function initDB() {
           content TEXT NOT NULL,
           image_data BLOB,
           image_type TEXT,
+          password_hash TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE
         )
@@ -362,7 +375,7 @@ app.get('/api/boards/:slug/threads', async (req, res) => {
 app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) => {
   try {
     const { slug } = req.params;
-    const { subject, content } = req.body;
+    const { subject, content, isNsfw, password } = req.body;
 
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
@@ -395,16 +408,19 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
       imageType = req.file.mimetype;
     }
 
+    const passwordHash = hashPassword(password);
+    const isNsfwBool = isNsfw === 'true' || isNsfw === true;
+
     const result = hasPostgreSQL
       ? await query(`
-          INSERT INTO threads (board_slug, subject, content, image_data, image_type)
-          VALUES ($1, $2, $3, $4, $5)
+          INSERT INTO threads (board_slug, subject, content, image_data, image_type, is_nsfw, password_hash)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
           RETURNING *
-        `, [slug, subject || null, content, imageData, imageType])
+        `, [slug, subject || null, content, imageData, imageType, isNsfwBool, passwordHash])
       : await query(`
-          INSERT INTO threads (board_slug, subject, content, image_data, image_type)
-          VALUES (?, ?, ?, ?, ?)
-        `, [slug, subject || null, content, imageData, imageType]);
+          INSERT INTO threads (board_slug, subject, content, image_data, image_type, is_nsfw, password_hash)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [slug, subject || null, content, imageData, imageType, isNsfwBool ? 1 : 0, passwordHash]);
 
     res.json(result[0] || { id: result.lastInsertRowid });
   } catch (error) {
@@ -461,7 +477,7 @@ app.get('/api/threads/:id', async (req, res) => {
 app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { content } = req.body;
+    const { content, password } = req.body;
 
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
@@ -493,17 +509,19 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
       imageType = req.file.mimetype;
     }
 
+    const passwordHash = hashPassword(password);
+
     // Create post
     const postResult = hasPostgreSQL
       ? await query(`
-          INSERT INTO posts (thread_id, content, image_data, image_type)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO posts (thread_id, content, image_data, image_type, password_hash)
+          VALUES ($1, $2, $3, $4, $5)
           RETURNING *
-        `, [id, content, imageData, imageType])
+        `, [id, content, imageData, imageType, passwordHash])
       : await query(`
-          INSERT INTO posts (thread_id, content, image_data, image_type)
-          VALUES (?, ?, ?, ?)
-        `, [id, content, imageData, imageType]);
+          INSERT INTO posts (thread_id, content, image_data, image_type, password_hash)
+          VALUES (?, ?, ?, ?, ?)
+        `, [id, content, imageData, imageType, passwordHash]);
 
     // Update thread reply count and bump time
     if (hasPostgreSQL) {
@@ -620,6 +638,85 @@ app.get('/api/images/post/:id', async (req, res) => {
     res.send(image_data);
   } catch (error) {
     console.error('Error serving post image:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete thread
+app.delete('/api/threads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
+
+    const passwordHash = hashPassword(password);
+
+    // Check if thread exists and password matches
+    const threads = hasPostgreSQL
+      ? await query('SELECT * FROM threads WHERE id = $1 AND password_hash = $2', [id, passwordHash])
+      : await query('SELECT * FROM threads WHERE id = ? AND password_hash = ?', [id, passwordHash]);
+
+    if (threads.length === 0) {
+      return res.status(404).json({ error: 'Thread not found or incorrect password' });
+    }
+
+    // Delete thread (posts will be cascade deleted)
+    if (hasPostgreSQL) {
+      await query('DELETE FROM threads WHERE id = $1', [id]);
+    } else {
+      await query('DELETE FROM threads WHERE id = ?', [id]);
+    }
+
+    res.json({ message: 'Thread deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting thread:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete post
+app.delete('/api/posts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
+
+    const passwordHash = hashPassword(password);
+
+    // Check if post exists and password matches
+    const posts = hasPostgreSQL
+      ? await query('SELECT * FROM posts WHERE id = $1 AND password_hash = $2', [id, passwordHash])
+      : await query('SELECT * FROM posts WHERE id = ? AND password_hash = ?', [id, passwordHash]);
+
+    if (posts.length === 0) {
+      return res.status(404).json({ error: 'Post not found or incorrect password' });
+    }
+
+    const threadId = posts[0].thread_id;
+
+    // Delete post
+    if (hasPostgreSQL) {
+      await query('DELETE FROM posts WHERE id = $1', [id]);
+    } else {
+      await query('DELETE FROM posts WHERE id = ?', [id]);
+    }
+
+    // Update thread reply count
+    if (hasPostgreSQL) {
+      await query('UPDATE threads SET reply_count = reply_count - 1 WHERE id = $1', [threadId]);
+    } else {
+      await query('UPDATE threads SET reply_count = reply_count - 1 WHERE id = ?', [threadId]);
+    }
+
+    res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting post:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
