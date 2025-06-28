@@ -1,8 +1,7 @@
-
 <!doctype html>
 <html>
     <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>/gr/ - Green-Text - Yokona</title>
         <style>
             body {
@@ -506,7 +505,8 @@
 
                 <div class="board-title">🍀 /gr/ - Green-Text Stories</div>
                 <div class="board-info">
-                    Share your green-text stories and anecdotes. Use &gt; to start green text lines.
+                    Share your green-text stories and anecdotes. Use &gt; to
+                    start green text lines.
                 </div>
 
                 <div class="post-form">
@@ -545,19 +545,39 @@
                                 "
                             ></span>
                         </div>
-                        <div style="margin-bottom: 10px;">
+                        <div style="margin-bottom: 10px">
                             <label>Password:</label>
                             <input
                                 type="password"
                                 id="password"
                                 name="password"
                                 placeholder="Optional deletion password"
-                                style="width: 100%; margin-top: 5px; padding: 5px; border: 1px solid #ccc; box-sizing: border-box;"
+                                style="
+                                    width: 100%;
+                                    margin-top: 5px;
+                                    padding: 5px;
+                                    border: 1px solid #ccc;
+                                    box-sizing: border-box;
+                                "
                             />
                         </div>
-                        <div style="margin-bottom: 10px;">
-                            <label for="isNsfw" style="display: flex; align-items: center; cursor: pointer;">
-                                <input type="checkbox" id="isNsfw" name="isNsfw" style="margin-right: 8px; margin-left: 0;" />
+                        <div style="margin-bottom: 10px">
+                            <label
+                                for="isNsfw"
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    cursor: pointer;
+                                    justify-content: flex-start;
+                                    width: fit-content;
+                                "
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="isNsfw"
+                                    name="isNsfw"
+                                    style="margin-right: 4px; margin-left: 0; vertical-align: middle;"
+                                />
                                 Mark as NSFW
                             </label>
                         </div>
@@ -568,9 +588,9 @@
                 </div>
 
                 <div class="threads-header" id="threads-header">
-                    <span>📋 Green-Text Stories</span>
+                    <span> Green-Text Stories</span>
                     <button class="refresh-btn" onclick="refreshThreads()">
-                        🔄 Refresh
+                        Refresh
                     </button>
                 </div>
                 <div id="threads-container">
@@ -596,16 +616,22 @@
             <div class="password-modal">
                 <h3>Delete Thread</h3>
                 <p>Enter deletion password:</p>
-                <input type="password" id="delete-password" placeholder="Password" />
+                <input
+                    type="password"
+                    id="delete-password"
+                    placeholder="Password"
+                />
                 <div>
                     <button onclick="confirmDelete()">Delete</button>
-                    <button class="cancel-btn" onclick="cancelDelete()">Cancel</button>
+                    <button class="cancel-btn" onclick="cancelDelete()">
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
 
         <script>
-            const boardSlug = 'gr';
+            const boardSlug = "gr";
             let currentPage = 1;
             let totalPages = 1;
             let deleteThreadId = null;
@@ -617,50 +643,64 @@
 
             // Format green-text content
             function formatGreenText(content) {
-                return content.split('\n').map(line => {
-                    line = line.trim();
-                    if (line.startsWith('>')) {
-                        return `<span class="green-text">${line}</span>`;
-                    }
-                    // Handle quote links
-                    line = line.replace(/&gt;&gt;(\d+)/g, '<a href="#" style="color: #d00; text-decoration: none;">&gt;&gt;$1</a>');
-                    return line;
-                }).join('<br>');
+                return content
+                    .split("\n")
+                    .map((line) => {
+                        line = line.trim();
+                        if (line.startsWith(">")) {
+                            return `<span class="green-text">${line}</span>`;
+                        }
+                        // Handle quote links
+                        line = line.replace(
+                            /&gt;&gt;(\d+)/g,
+                            '<a href="#" style="color: #d00; text-decoration: none;">&gt;&gt;$1</a>',
+                        );
+                        return line;
+                    })
+                    .join("<br>");
             }
 
             // Load threads with optimization
             async function loadThreads() {
-                const threadsContainer = document.getElementById("threads-container");
-                
+                const threadsContainer =
+                    document.getElementById("threads-container");
+
                 // Show loading with spinner
-                threadsContainer.innerHTML = '<div class="loading">⟳ Loading green-text stories...</div>';
+                threadsContainer.innerHTML =
+                    '<div class="loading">⟳ Loading green-text stories...</div>';
 
                 try {
                     // Add timeout and cache headers
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-                    
-                    const response = await fetch(`/api/boards/${boardSlug}/threads?page=${currentPage}&limit=10`, {
-                        signal: controller.signal,
-                        headers: {
-                            'Cache-Control': 'max-age=60' // Cache for 1 minute
-                        }
-                    });
-                    
+                    const timeoutId = setTimeout(
+                        () => controller.abort(),
+                        10000,
+                    ); // 10 second timeout
+
+                    const response = await fetch(
+                        `/api/boards/${boardSlug}/threads?page=${currentPage}&limit=10`,
+                        {
+                            signal: controller.signal,
+                            headers: {
+                                "Cache-Control": "max-age=60", // Cache for 1 minute
+                            },
+                        },
+                    );
+
                     clearTimeout(timeoutId);
-                    
+
                     if (!response.ok) throw new Error("Failed to load threads");
 
                     const data = await response.json();
                     totalPages = data.totalPages;
-                    
+
                     // Use requestAnimationFrame for smooth rendering
                     requestAnimationFrame(() => {
                         renderThreads(data.threads);
                         updatePagination();
                     });
                 } catch (error) {
-                    if (error.name === 'AbortError') {
+                    if (error.name === "AbortError") {
                         threadsContainer.innerHTML = `
                         <div class="error">
                             Request timed out. Please try again.
@@ -680,7 +720,8 @@
 
             // Render threads
             function renderThreads(threads) {
-                const threadsContainer = document.getElementById("threads-container");
+                const threadsContainer =
+                    document.getElementById("threads-container");
 
                 if (threads.length === 0) {
                     threadsContainer.innerHTML = `
@@ -693,13 +734,20 @@
 
                 let threadsHTML = "";
                 threads.forEach((thread) => {
-                    const postDate = new Date(thread.created_at).toLocaleDateString("en-US", {
+                    const postDate = new Date(
+                        thread.created_at,
+                    ).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
                     });
-                    const nsfwTag = thread.is_nsfw ? '<span class="nsfw-tag">NSFW</span>' : '';
-                    const deleteBtn = '<button class="delete-btn" onclick="deleteThread(' + thread.id + ', event)">Delete</button>';
+                    const nsfwTag = thread.is_nsfw
+                        ? '<span class="nsfw-tag">NSFW</span>'
+                        : "";
+                    const deleteBtn =
+                        '<button class="delete-btn" onclick="deleteThread(' +
+                        thread.id +
+                        ', event)">Delete</button>';
 
                     threadsHTML += `
                     <div class="thread-item" onclick="viewThread(${thread.id})">
@@ -719,7 +767,9 @@
 
             // Update pagination
             function updatePagination() {
-                const paginationContainer = document.getElementById("pagination-container");
+                const paginationContainer = document.getElementById(
+                    "pagination-container",
+                );
 
                 let paginationHTML = `
                 <button onclick="changePage(1)" ${currentPage === 1 ? "disabled" : ""}>« First</button>
@@ -743,40 +793,46 @@
             function deleteThread(threadId, event) {
                 event.stopPropagation();
                 deleteThreadId = threadId;
-                document.getElementById('password-overlay').style.display = 'flex';
-                document.getElementById('delete-password').focus();
+                document.getElementById("password-overlay").style.display =
+                    "flex";
+                document.getElementById("delete-password").focus();
             }
 
             async function confirmDelete() {
-                const password = document.getElementById('delete-password').value;
+                const password =
+                    document.getElementById("delete-password").value;
                 if (!password) return;
 
                 try {
-                    const response = await fetch(`/api/threads/${deleteThreadId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
+                    const response = await fetch(
+                        `/api/threads/${deleteThreadId}`,
+                        {
+                            method: "DELETE",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ password }),
                         },
-                        body: JSON.stringify({ password })
-                    });
+                    );
 
                     if (response.ok) {
-                        alert('Thread deleted successfully');
+                        alert("Thread deleted successfully");
                         loadThreads();
                     } else {
                         const error = await response.json();
-                        alert(error.error || 'Failed to delete thread');
+                        alert(error.error || "Failed to delete thread");
                     }
                 } catch (error) {
-                    alert('Error deleting thread: ' + error.message);
+                    alert("Error deleting thread: " + error.message);
                 }
 
                 cancelDelete();
             }
 
             function cancelDelete() {
-                document.getElementById('password-overlay').style.display = 'none';
-                document.getElementById('delete-password').value = '';
+                document.getElementById("password-overlay").style.display =
+                    "none";
+                document.getElementById("delete-password").value = "";
                 deleteThreadId = null;
             }
 
@@ -805,14 +861,19 @@
                         formData.append("image", fileInput.files[0]);
                     }
 
-                    const response = await fetch(`/api/boards/${boardSlug}/threads`, {
-                        method: "POST",
-                        body: formData,
-                    });
+                    const response = await fetch(
+                        `/api/boards/${boardSlug}/threads`,
+                        {
+                            method: "POST",
+                            body: formData,
+                        },
+                    );
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || "Failed to create thread");
+                        throw new Error(
+                            errorData.error || "Failed to create thread",
+                        );
                     }
 
                     // Reset form
@@ -843,29 +904,35 @@
             }
 
             // Handle file selection
-            document.getElementById("thread-file").addEventListener("change", function (e) {
-                const fileName = document.getElementById("file-name");
-                if (e.target.files.length > 0) {
-                    fileName.textContent = e.target.files[0].name;
-                } else {
-                    fileName.textContent = "";
-                }
-            });
-
-            // Handle Enter key in password input
-            document.addEventListener('DOMContentLoaded', function() {
-                document.getElementById('delete-password').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        confirmDelete();
+            document
+                .getElementById("thread-file")
+                .addEventListener("change", function (e) {
+                    const fileName = document.getElementById("file-name");
+                    if (e.target.files.length > 0) {
+                        fileName.textContent = e.target.files[0].name;
+                    } else {
+                        fileName.textContent = "";
                     }
                 });
+
+            // Handle Enter key in password input
+            document.addEventListener("DOMContentLoaded", function () {
+                document
+                    .getElementById("delete-password")
+                    .addEventListener("keypress", function (e) {
+                        if (e.key === "Enter") {
+                            confirmDelete();
+                        }
+                    });
             });
 
             // Initialize when page loads
             document.addEventListener("DOMContentLoaded", initBoard);
 
             // Set up form submission
-            document.getElementById("thread-form").addEventListener("submit", createThread);
+            document
+                .getElementById("thread-form")
+                .addEventListener("submit", createThread);
         </script>
     </body>
 </html>
