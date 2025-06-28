@@ -1180,6 +1180,51 @@
                 document.getElementById(modalId).style.display = 'none';
             }
 
+            // Create reply
+            async function createReply(event) {
+                event.preventDefault();
+
+                const content = document.getElementById("reply-content").value;
+                const fileInput = document.getElementById("reply-file");
+                const password = document.getElementById("password").value;
+
+                if (!content) {
+                    showModal('error', 'Please enter some content for your reply');
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append("content", content);
+                    formData.append("password", password);
+                    if (fileInput.files[0]) {
+                        formData.append("image", fileInput.files[0]);
+                    }
+
+                    const response = await fetch(`/api/threads/${threadId}/posts`, {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || "Failed to create reply");
+                    }
+
+                    // Reset form
+                    document.getElementById("reply-form").reset();
+                    document.getElementById("file-name").textContent = "";
+
+                    // Reload thread to show new reply
+                    await initThread();
+
+                    showModal('success', 'Reply posted successfully!');
+                } catch (error) {
+                    console.error("Error creating reply:", error);
+                    showModal('error', `Error: ${error.message}`);
+                }
+            }
+
             // Go back to board
             function goBackToBoard() {
                 const boardSlug = localStorage.getItem('currentBoard');
