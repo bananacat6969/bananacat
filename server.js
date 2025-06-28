@@ -18,7 +18,15 @@ if (hasPostgreSQL) {
   
   db = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  });
+  
+  // Handle pool errors
+  db.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
   });
   
   console.log('Using PostgreSQL database');
@@ -44,8 +52,13 @@ const upload = multer({
 // Database helper functions
 async function query(sql, params = []) {
   if (hasPostgreSQL) {
-    const result = await db.query(sql, params);
-    return result.rows;
+    const client = await db.connect();
+    try {
+      const result = await client.query(sql, params);
+      return result.rows;
+    } finally {
+      client.release();
+    }
   } else {
     const stmt = db.prepare(sql);
     if (sql.trim().toLowerCase().startsWith('select')) {
@@ -62,7 +75,7 @@ async function initDB() {
   try {
     if (hasPostgreSQL) {
       // PostgreSQL schema
-      await db.query(`
+      await query(`
         CREATE TABLE IF NOT EXISTS boards (
           id SERIAL PRIMARY KEY,
           slug VARCHAR(20) UNIQUE NOT NULL,
@@ -72,7 +85,7 @@ async function initDB() {
         )
       `);
 
-      await db.query(`
+      await query(`
         CREATE TABLE IF NOT EXISTS threads (
           id SERIAL PRIMARY KEY,
           board_slug VARCHAR(20) REFERENCES boards(slug),
@@ -86,7 +99,7 @@ async function initDB() {
         )
       `);
 
-      await db.query(`
+      await query(`
         CREATE TABLE IF NOT EXISTS posts (
           id SERIAL PRIMARY KEY,
           thread_id INTEGER REFERENCES threads(id) ON DELETE CASCADE,
@@ -152,7 +165,7 @@ async function initDB() {
 
     for (const board of boards) {
       if (hasPostgreSQL) {
-        await db.query(
+        await query(
           'INSERT INTO boards (slug, name, description) VALUES ($1, $2, $3) ON CONFLICT (slug) DO NOTHING',
           [board.slug, board.name, board.description]
         );
@@ -474,6 +487,23 @@ app.get('*', (req, res) => {
   
   // For any other route, serve the home page (client-side routing)
   res.sendFile(path.join(__dirname, 'yokona/public/home.html'));
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT, shutting down gracefully');
+  if (hasPostgreSQL) {
+    await db.end();
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM, shutting down gracefully');
+  if (hasPostgreSQL) {
+    await db.end();
+  }
+  process.exit(0);
 });
 
 // Start server
