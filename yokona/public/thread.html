@@ -787,10 +787,10 @@
                         });
 
                     const postBody =
-                        post.image_url || post.content
+                        (post.image_data || post.image_type) || post.content
                             ? `
                     <div class="post-body">
-                        ${post.image_url ? `<img src="${post.image_url}" alt="${isOP ? "Thread" : "Post"} image" class="post-image" onclick="enlargeImage('${post.image_url}')">` : ""}
+                        ${(post.image_data || post.image_type) ? `<img src="/api/images/${isOP ? 'thread' : 'post'}/${isOP ? thread.id : post.id}" alt="${isOP ? "Thread" : "Post"} image" class="post-image" onclick="enlargeImage('/api/images/${isOP ? 'thread' : 'post'}/${isOP ? thread.id : post.id}')" onerror="this.style.display='none'">` : ""}
                         <div class="post-content">${formatPostContent(post.content, postNumber)}</div>
                     </div>
                 `
