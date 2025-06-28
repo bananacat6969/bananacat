@@ -78,7 +78,7 @@ async function fixSchema() {
 // Set DATABASE_URL if not already set (use your production URL)
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL =
-    "postgresql://yokona_w8fl_user:bFqt2Gg9ivoZ3mhl8N7CNhiNY3t4ckqC@dpg-d1fmnn3ipnbc739pao2g-a/yokona_w8fl";
+    "postgresql://yokona_nbql_user:qrajVTS75czjnwybEgqkMYeWGB7A4oMt@dpg-d1fqs0vfte5s73frpa4g-a/yokona_nbql";
 }
 
 fixSchema();
