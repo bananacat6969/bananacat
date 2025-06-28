@@ -406,6 +406,22 @@
                 font-size: 0.8em;
             }
 
+            /* Delete button styling */
+            .delete-btn {
+                background-color: #ff6b6b;
+                color: white;
+                border: none;
+                padding: 2px 8px;
+                font-size: 10px;
+                cursor: pointer;
+                border-radius: 3px;
+                margin-left: 10px;
+            }
+
+            .delete-btn:hover {
+                background-color: #ff5252;
+            }
+
             /* Pagination */
             .pagination {
                 text-align: center;
@@ -711,36 +727,43 @@
                 }
             }
 
-            // Format post content with greentext and quotes
-            function formatPostContent(content, postId) {
-                if (!content) return "";
+            // Delete post
+            async function deletePost(postId) {
+                const password = prompt('Enter deletion password:');
+                if (!password) return;
 
-                let formatted = content;
+                try {
+                    const response = await fetch(`/api/posts/${postId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ password })
+                    });
 
-                // Convert newlines to <br>
-                formatted = formatted.replace(/\n/g, "<br>");
+                    if (response.ok) {
+                        alert('Post deleted successfully');
+                        loadThread();
+                    } else {
+                        const error = await response.json();
+                        alert(error.error || 'Failed to delete post');
+                    }
+                } catch (error) {
+                    alert('Error deleting post: ' + error.message);
+                }
+            }
 
-                // Convert greentext (lines starting with >)
-                formatted = formatted.replace(
-                    /^&gt;(.*)$/gm,
-                    '<span class="quote">&gt;$1</span>',
-                );
-                formatted = formatted.replace(
-                    /^>(.*)$/gm,
-                    '<span class="quote">&gt;$1</span>',
-                );
-
-                // Convert post quotes (>>number) - make them clickable for scrolling
-                formatted = formatted.replace(
-                    /&gt;&gt;(\d+)/g,
-                    '<a href="#p$1" class="quotelink" onclick="event.preventDefault(); scrollToAndHighlightPost($1)">&gt;&gt;$1</a>',
-                );
-                formatted = formatted.replace(
-                    />>(\d+)/g,
-                    '<a href="#p$1" class="quotelink" onclick="event.preventDefault(); scrollToAndHighlightPost($1)">&gt;&gt;$1</a>',
-                );
-
-                return formatted;
+            // Format green-text content
+            function formatContent(content) {
+                return content.split('\n').map(line => {
+                    line = line.trim();
+                    if (line.startsWith('>')) {
+                        return `<span style="color: #789922; font-family: monospace;">${line}</span>`;
+                    }
+                    // Handle quote links
+                    line = line.replace(/&gt;&gt;(\d+)/g, '<a href="#" style="color: #d00; text-decoration: none;">&gt;&gt;$1</a>');
+                    return line;
+                }).join('<br>');
             }
 
             // Render thread and posts
@@ -751,6 +774,9 @@
 
                 document.getElementById("thread-title").textContent =
                     thread.subject || "No Subject";
+                const nsfwTag = thread.is_nsfw ? '<span style="background-color: #ff6b6b; color: white; padding: 2px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; margin-left: 5px;">NSFW</span>' : '';
+                const deleteThreadBtn = '<button onclick="deleteThread(' + thread.id + ')" style="background-color: #ff6b6b; color: white; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; margin-left: 10px;">Delete Thread</button>';
+
 
                 let postsHTML = "";
 
@@ -796,7 +822,7 @@
                     </div>
                 `
                             : `<div class="post-body"><div class="post-content">${formatPostContent(post.content, postNumber)}</div></div>`;
-
+                            const deletePostBtn = '<button onclick="deletePost(' + post.id + ')" style="background-color: #ff6b6b; color: white; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; margin-left: 10px;">Delete</button>';
                     postsHTML += `
                     <div class="post" id="p${postNumber}" data-post-id="${postNumber}">
                         <div class="post-header">
@@ -806,6 +832,10 @@
                             <span class="post-id">ID: ${generateRandomId()}</span>
                             <span class="post-no">No. ${postNumber}</span>
                             <a href="#p${postNumber}" class="quotelink" onclick="quotePost(${postNumber})" style="margin-left: 10px; font-size: 0.9em;">[Reply]</a>
+                            ${isOP ? 
+                                `<button onclick="deleteThread(${thread.id})" class="delete-btn" style="background-color: #ff6b6b; color: white; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; margin-left: 10px;">Delete Thread</button>` : 
+                                `<button onclick="deletePost(${post.id})" class="delete-btn" style="background-color: #ff6b6b; color: white; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; margin-left: 10px;">Delete</button>`
+                            }
                         </div>
                         ${postBody}
                     </div>
@@ -834,6 +864,17 @@
                                                 </div>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td>Password:</td>
+                                            <td>
+                                              <input
+                                                type="password"
+                                                id="password"
+                                                name="password"
+                                                placeholder="Optional deletion password"
+                                              />
+                                            </td>
+                                          </tr>
                                         <tr>
                                             <td></td>
                                             <td><button type="submit">Post</button></td>
@@ -965,12 +1006,39 @@
                 });
             }
 
+            // Delete thread
+            async function deleteThread(threadId) {
+                const password = prompt('Enter deletion password:');
+                if (!password) return;
+
+                try {
+                    const response = await fetch(`/api/threads/${threadId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ password })
+                    });
+
+                    if (response.ok) {
+                        alert('Thread deleted successfully');
+                        window.history.back();
+                    } else {
+                        const error = await response.json();
+                        alert(error.error || 'Failed to delete thread');
+                    }
+                } catch (error) {
+                    alert('Error deleting thread: ' + error.message);
+                }
+            }
+
             // Create reply
             async function createReply(event) {
                 event.preventDefault();
 
                 const content = document.getElementById("reply-content").value;
                 const fileInput = document.getElementById("reply-file");
+                const password = document.getElementById("password").value;
 
                 if (!content) {
                     showModal("error", "Please enter reply content");
@@ -980,6 +1048,8 @@
                 try {
                     const formData = new FormData();
                     formData.append("content", content);
+                    formData.append("password", password);
+
                     if (fileInput.files[0]) {
                         formData.append("image", fileInput.files[0]);
                     }
