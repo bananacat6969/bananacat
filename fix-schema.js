@@ -41,9 +41,9 @@ async function fixSchema() {
     // Fix threads table
     console.log("Updating threads.image_url column...");
     await pool.query(
-      "ALTER TABLE threads ALTER COLUMN image_url TYPE VARCHAR(1000);",
+      "ALTER TABLE threads ALTER COLUMN image_url TYPE TEXT;",
     );
-    console.log("✓ threads.image_url updated to VARCHAR(1000)");
+    console.log("✓ threads.image_url updated to TEXT");
 
     // Fix posts table
     console.log("Updating posts.image_url column...");
