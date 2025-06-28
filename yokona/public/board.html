@@ -680,6 +680,9 @@
                         </div>
                     </div>
                 `;
+                    if (thread.image_data || thread.image_type) {
+                        threadsHTML += `<img src="/api/images/thread/${thread.id}" alt="Thread image" class="thread-image" onerror="this.style.display='none'">`;
+                    }
                 });
 
                 threadsContainer.innerHTML = threadsHTML;
