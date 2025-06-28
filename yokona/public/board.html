@@ -556,22 +556,20 @@
                                 "
                             ></span>
                         </div>
-                        <div class="form-row">
-                        <label>Password:</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Optional deletion password"
-                        />
-                    </div>
-                    <div class="form-row">
-                        <label></label>
-                        <div>
-                            <input type="checkbox" id="isNsfw" name="isNsfw" />
+                        <div style="margin-bottom: 10px;">
+                            <label>Password:</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Optional deletion password"
+                                style="width: 100%; margin-top: 5px; padding: 5px; border: 1px solid #ccc; box-sizing: border-box;"
+                            />
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <input type="checkbox" id="isNsfw" name="isNsfw" style="margin-right: 5px;" />
                             <label for="isNsfw">Mark as NSFW</label>
                         </div>
-                    </div>
                         <div>
                             <button type="submit">Post</button>
                         </div>
@@ -721,7 +719,7 @@
                         year: "numeric",
                     });
                     const nsfwTag = thread.is_nsfw ? '<span class="nsfw-tag">NSFW</span>' : '';
-                    const deleteBtn = '<button class="delete-btn" onclick="deleteThread(' + thread.id + ')">Delete</button>';
+                    const deleteBtn = '<button class="delete-btn" onclick="deleteThread(' + thread.id + ', event)">Delete</button>';
 
                     threadsHTML += `
                     <div class="thread-item" onclick="viewThread(${thread.id})">
@@ -729,9 +727,9 @@
                         <small>by Anonymous</small>
                         <div class="thread-stats">
                             ${postDate} | ${thread.reply_count || 0} replies |  ${thread.views || 0} views
+                            ${nsfwTag}
+                            ${deleteBtn}
                         </div>
-						${nsfwTag}
-                        ${deleteBtn}
                     </div>
                 `;
                 });
@@ -764,7 +762,8 @@
             }
 
             // Delete thread
-            async function deleteThread(threadId) {
+            async function deleteThread(threadId, event) {
+                event.stopPropagation();
                 const password = prompt('Enter deletion password:');
                 if (!password) return;
 
