@@ -6,7 +6,7 @@ export const boardCategories = {
     { slug: "coal", name: "Coal", description: "Coal Posts" },
     { slug: "gem", name: "Gem", description: "Gem Posts" },
     { slug: "ph", name: "Philippines", description: "Philippines" },
-    { slug: "green", name: "Green-Text", description: "Green-Text Stories" },
+    { slug: "gr", name: "Green-Text", description: "Green-Text Stories" },
     { slug: "deb", name: "Debates", description: "Debates" },
     { slug: "hot", name: "Hot Takes", description: "Hot Takes" },
     { slug: "schizo", name: "Schizoposting", description: "Schizoposting" },
