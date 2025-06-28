@@ -880,11 +880,13 @@
 
                     statsBox.innerHTML = `
                     <h3>Site Statistics</h3>
-                    <p>Site Users: ${stats.siteUsers}</p>
-                    <p>Posts Today: ${stats.postsToday}</p>
-                    <p>Threads Today: ${stats.threadsToday}</p>
-                    <p>Total Threads: ${stats.totalThreads}</p>
-                    <p>Total Posts: ${stats.totalPosts}</p>
+                    <p>👥 Online Now: ${stats.onlineUsers || 0}</p>
+                    <p>📊 Visitors Today: ${stats.visitorsToday || 0}</p>
+                    <p>🌍 Total Visitors: ${stats.siteUsers}</p>
+                    <p>📝 Posts Today: ${stats.postsToday}</p>
+                    <p>🧵 Threads Today: ${stats.threadsToday}</p>
+                    <p>📚 Total Threads: ${stats.totalThreads}</p>
+                    <p>💬 Total Posts: ${stats.totalPosts}</p>
                 `;
                 } catch (error) {
                     console.error("Error loading stats:", error);
