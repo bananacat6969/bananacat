@@ -671,6 +671,12 @@ app.listen(PORT, '0.0.0.0', async () => {
   
   try {
     await initDB();
+    
+    // Run migration to binary storage if using PostgreSQL
+    if (hasPostgreSQL) {
+      const { migrateDatabase } = require('./migrate-to-binary');
+      await migrateDatabase();
+    }
   } catch (error) {
     console.error('Failed to initialize database:', error);
     if (hasPostgreSQL) {

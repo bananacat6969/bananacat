@@ -122,4 +122,10 @@ if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = "postgresql://yokona_w8fl_user:bFqt2Gg9ivoZ3mhl8N7CNhiNY3t4ckqC@dpg-d1fmnn3ipnbc739pao2g-a/yokona_w8fl";
 }
 
-migrateDatabase();
+// Export the function so it can be used by server.js
+module.exports = { migrateDatabase };
+
+// Run migration if this file is executed directly
+if (require.main === module) {
+  migrateDatabase();
+}
