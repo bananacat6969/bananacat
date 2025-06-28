@@ -51,6 +51,33 @@ if (hasPostgreSQL) {
   console.log('Using SQLite for development');
 }
 
+// Visitor tracking middleware
+app.use((req, res, next) => {
+  // Skip tracking for API endpoints and static files
+  if (!req.path.startsWith('/api/') && !req.path.includes('.')) {
+    const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+    const userAgent = req.headers['user-agent'] || '';
+    const sessionKey = `${clientIP}-${userAgent}`;
+    
+    // Track unique sessions (approximates unique visitors)
+    visitorSessions.add(sessionKey);
+    
+    // Track daily visitors
+    const today = new Date().toDateString();
+    if (!dailyVisitors.has(today)) {
+      dailyVisitors.set(today, new Set());
+    }
+    dailyVisitors.get(today).add(sessionKey);
+    
+    // Clean up sessions older than 30 minutes
+    setTimeout(() => {
+      visitorSessions.delete(sessionKey);
+    }, 30 * 60 * 1000);
+  }
+  
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -62,6 +89,23 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
+
+// Simple visitor tracking
+const visitorSessions = new Set();
+const dailyVisitors = new Map();
+
+// Clean up old daily visitor data (keep last 7 days)
+setInterval(() => {
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekAgoKey = weekAgo.toDateString();
+  
+  for (const [date] of dailyVisitors) {
+    if (date < weekAgoKey) {
+      dailyVisitors.delete(date);
+    }
+  }
+}, 24 * 60 * 60 * 1000); // Run daily
 
 // Database helper functions with improved retry logic
 async function query(sql, params = [], retries = 3) {
@@ -600,23 +644,43 @@ app.get('/api/stats', async (req, res) => {
       ? await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= CURRENT_DATE`)
       : await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= date('now')`);
 
+    // Calculate realistic visitor stats
+    const today = new Date().toDateString();
+    const todayVisitors = dailyVisitors.get(today)?.size || 0;
+    const currentOnline = visitorSessions.size;
+    
+    // Estimate total unique visitors (based on content activity and some baseline)
+    const totalContent = parseInt(threadsCount[0].count || 0) + parseInt(postsCount[0].count || 0);
+    const estimatedTotalVisitors = Math.max(
+      Math.floor(totalContent * 2.5 + 150), // Base estimate: content * 2.5 + baseline
+      todayVisitors + 100 // Ensure it's at least higher than today's count
+    );
+
     res.json({
       totalThreads: parseInt(threadsCount[0].count || 0),
       totalPosts: parseInt(postsCount[0].count || 0),
       threadsToday: parseInt(todayThreads[0].count || 0),
       postsToday: parseInt(todayPosts[0].count || 0),
-      siteUsers: Math.floor(Math.random() * 5000) + 2500 // Mock unique users count
+      siteUsers: estimatedTotalVisitors,
+      onlineUsers: currentOnline,
+      visitorsToday: todayVisitors
     });
   } catch (error) {
     console.error('Error fetching stats:', error.message);
     
-    // Return default stats instead of error
+    // Return fallback stats with current visitor data
+    const today = new Date().toDateString();
+    const todayVisitors = dailyVisitors.get(today)?.size || 0;
+    const currentOnline = visitorSessions.size;
+    
     res.json({
       totalThreads: 0,
       totalPosts: 0,
       threadsToday: 0,
       postsToday: 0,
-      siteUsers: 2500,
+      siteUsers: Math.max(todayVisitors + 150, 250),
+      onlineUsers: currentOnline,
+      visitorsToday: todayVisitors,
       error: 'Database temporarily unavailable'
     });
   }
