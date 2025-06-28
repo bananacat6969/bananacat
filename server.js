@@ -132,7 +132,7 @@ async function initDB() {
           board_slug VARCHAR(20) REFERENCES boards(slug),
           subject VARCHAR(200),
           content TEXT NOT NULL,
-          image_url VARCHAR(500),
+          image_url TEXT,
           reply_count INTEGER DEFAULT 0,
           views INTEGER DEFAULT 0,
           last_bump_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -145,7 +145,7 @@ async function initDB() {
           id SERIAL PRIMARY KEY,
           thread_id INTEGER REFERENCES threads(id) ON DELETE CASCADE,
           content TEXT NOT NULL,
-          image_url VARCHAR(500),
+          image_url TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
@@ -330,12 +330,32 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
       return res.status(404).json({ error: 'Board not found' });
     }
 
-    // Handle image upload
+    // Handle image upload with validation
     let imageUrl = null;
     if (req.file) {
-      // For now, convert to base64 data URL since we don't have file storage setup
-      const base64 = req.file.buffer.toString('base64');
-      imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+      // Validate file type
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ error: 'Only image files are allowed' });
+      }
+      
+      // Validate file size (5MB limit already handled by multer)
+      if (req.file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ error: 'File size too large (max 5MB)' });
+      }
+      
+      try {
+        // Convert to base64 data URL
+        const base64 = req.file.buffer.toString('base64');
+        imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+        
+        // Check if the resulting data URL is reasonable (prevent extremely large base64)
+        if (imageUrl.length > 10 * 1024 * 1024) { // 10MB text limit
+          return res.status(400).json({ error: 'Image too large when encoded' });
+        }
+      } catch (error) {
+        console.error('Error processing image:', error);
+        return res.status(400).json({ error: 'Error processing image file' });
+      }
     }
 
     const result = hasPostgreSQL
@@ -421,9 +441,29 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
 
     let imageUrl = null;
     if (req.file) {
-      // For now, convert to base64 data URL since we don't have file storage setup
-      const base64 = req.file.buffer.toString('base64');
-      imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+      // Validate file type
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ error: 'Only image files are allowed' });
+      }
+      
+      // Validate file size (5MB limit already handled by multer)
+      if (req.file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ error: 'File size too large (max 5MB)' });
+      }
+      
+      try {
+        // Convert to base64 data URL
+        const base64 = req.file.buffer.toString('base64');
+        imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+        
+        // Check if the resulting data URL is reasonable
+        if (imageUrl.length > 10 * 1024 * 1024) { // 10MB text limit
+          return res.status(400).json({ error: 'Image too large when encoded' });
+        }
+      } catch (error) {
+        console.error('Error processing image:', error);
+        return res.status(400).json({ error: 'Error processing image file' });
+      }
     }
 
     // Create post
