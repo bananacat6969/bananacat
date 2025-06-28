@@ -762,7 +762,7 @@
             let totalPages = 1;
             const postsPerPage = 15;
 
-            // Initialize thread
+            // Initialize thread with optimization
             async function initThread() {
                 if (!threadId) {
                     document.getElementById("posts-container").innerHTML =
@@ -770,20 +770,46 @@
                     return;
                 }
 
+                // Show loading indicator
+                document.getElementById("posts-container").innerHTML = 
+                    '<div class="loading">⟳ Loading posts...</div>';
+
                 try {
+                    // Add timeout and cache headers
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                    
                     const response = await fetch(
                         `/api/threads/${threadId}?page=${currentPage}&limit=${postsPerPage}`,
+                        {
+                            signal: controller.signal,
+                            headers: {
+                                'Cache-Control': 'max-age=30' // Cache for 30 seconds
+                            }
+                        }
                     );
+                    
+                    clearTimeout(timeoutId);
+                    
                     if (!response.ok) throw new Error("Thread not found");
 
                     const data = await response.json();
                     threadData = data;
                     totalPages = data.totalPages || 1;
-                    renderThread(data);
-                    updatePagination();
+                    
+                    // Use requestAnimationFrame for smooth rendering
+                    requestAnimationFrame(() => {
+                        renderThread(data);
+                        updatePagination();
+                    });
                 } catch (error) {
-                    document.getElementById("posts-container").innerHTML =
-                        `<div class="error">Error loading thread: ${error.message}</div>`;
+                    if (error.name === 'AbortError') {
+                        document.getElementById("posts-container").innerHTML =
+                            `<div class="error">Request timed out. <button onclick="initThread()" style="margin-left: 10px; background: #96a8c8; color: white; border: none; padding: 5px 10px; cursor: pointer;">Retry</button></div>`;
+                    } else {
+                        document.getElementById("posts-container").innerHTML =
+                            `<div class="error">Error loading thread: ${error.message} <button onclick="initThread()" style="margin-left: 10px; background: #96a8c8; color: white; border: none; padding: 5px 10px; cursor: pointer;">Retry</button></div>`;
+                    }
                 }
             }
 
@@ -1225,6 +1251,33 @@
                 }
             }
 
+            // Update pagination
+            function updatePagination() {
+                const paginationContainer = document.getElementById("pagination-bottom");
+                
+                if (totalPages <= 1) {
+                    paginationContainer.innerHTML = "";
+                    return;
+                }
+
+                let paginationHTML = `
+                    <button onclick="changePage(1)" ${currentPage === 1 ? "disabled" : ""}>« First</button>
+                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>‹ Prev</button>
+                    <span>Page ${currentPage} of ${totalPages}</span>
+                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>Next ›</button>
+                    <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""}>Last »</button>
+                `;
+
+                paginationContainer.innerHTML = paginationHTML;
+            }
+
+            // Change page
+            function changePage(page) {
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                initThread();
+            }
+
             // Go back to board
             function goBackToBoard() {
                 const boardSlug = localStorage.getItem('currentBoard');
@@ -1235,7 +1288,8 @@
                 }
             }
 
-            initThread();
+            // Initialize when page loads
+            document.addEventListener("DOMContentLoaded", initThread);
         </script>
     </body>
 </html>
