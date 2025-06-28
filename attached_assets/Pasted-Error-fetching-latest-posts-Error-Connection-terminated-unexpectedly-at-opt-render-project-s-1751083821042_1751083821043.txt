@@ -1,0 +1,40 @@
+Error fetching latest posts: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:406:9
+Error fetching stats: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:444:9
+Error fetching board: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:195:9
+Error fetching stats: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:444:9
+Error fetching latest posts: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:406:9
+Error fetching stats: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:444:9
+Error fetching latest posts: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:406:9
+Error fetching board: Error: Connection terminated unexpectedly
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (/opt/render/project/src/server.js:55:20)
+    at async /opt/render/project/src/server.js:195:9
