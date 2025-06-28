@@ -1,0 +1,1516 @@
+
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Green-Text Thread - Yokona</title>
+        <style>
+            body {
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
+                background-color: #f0f0f0;
+                color: #000;
+                margin: 0;
+                padding: 0;
+                line-height: 1.6;
+            }
+
+            .container {
+                width: 90%;
+                max-width: 1200px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: 160px 1fr 240px;
+                gap: 10px;
+            }
+
+            /* Header */
+            .header {
+                grid-column: 1 / 4;
+                background-color: #789922;
+                padding: 10px;
+                border-bottom: 3px solid #5a7a1a;
+                text-align: center;
+            }
+
+            .header h1 {
+                color: white;
+                margin: 0;
+            }
+
+            .nav {
+                background-color: #d0e8b8;
+                padding: 5px;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+
+            .nav a {
+                margin: 0 15px;
+                text-decoration: none;
+                color: #334;
+                font-weight: bold;
+            }
+
+            /* Left sidebar */
+            .left-sidebar {
+                background-color: #e8f5d8;
+                padding: 10px;
+            }
+
+            .vertical-ad {
+                width: 120px;
+                height: 600px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            /* Main content */
+            .main-content {
+                background-color: #fff;
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+
+            .top-ad {
+                width: 100%;
+                height: 90px;
+                background-color: #ccc;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #999;
+            }
+
+            .thread-title {
+                background-color: #789922;
+                color: white;
+                padding: 10px;
+                margin-bottom: 20px;
+                font-size: 1.2em;
+                font-weight: bold;
+            }
+
+            /* Post styling */
+            .post {
+                margin-bottom: 15px;
+                background-color: #f8fcf8;
+                border: 1px solid #d9d9d9;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .post-header {
+                background-color: #e8f5d8;
+                padding: 8px 10px;
+                border-bottom: 1px solid #d9d9d9;
+                font-size: 0.9em;
+            }
+
+            .post-name {
+                color: #117743;
+                font-weight: bold;
+            }
+
+            .post-date {
+                color: #000;
+                margin-left: 10px;
+            }
+
+            .post-id {
+                color: #000;
+                margin-left: 10px;
+            }
+
+            .post-no {
+                color: #000;
+                margin-left: 10px;
+            }
+
+            .post-body {
+                padding: 10px;
+                display: flex;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .post-image {
+                max-width: 250px;
+                max-height: 250px;
+                border: 1px solid #ddd;
+                flex-shrink: 0;
+                cursor: pointer;
+            }
+
+            .post-image:hover {
+                opacity: 0.9;
+            }
+
+            .post-content {
+                flex: 1;
+                word-wrap: break-word;
+                line-height: 1.6;
+                font-family: monospace;
+            }
+
+            /* Green text styling */
+            .green-text {
+                color: #789922;
+                font-family: monospace;
+            }
+
+            /* Quote styling */
+            .quote {
+                color: #789922;
+                text-decoration: none;
+            }
+
+            .quote:hover {
+                color: #ff0000;
+                text-decoration: underline;
+            }
+
+            .quotelink {
+                color: #dd0000;
+                text-decoration: none;
+            }
+
+            .quotelink:hover {
+                color: #ff0000;
+                text-decoration: underline;
+            }
+
+            /* Replies section */
+            .replies-section {
+                margin-top: 30px;
+                border-top: 2px solid #789922;
+                padding-top: 15px;
+            }
+
+            .replies-header {
+                background-color: #e8f5d8;
+                padding: 10px;
+                margin-bottom: 15px;
+                border: 1px solid #ccc;
+                font-weight: bold;
+                color: #5a7a1a;
+                font-size: 1.1em;
+            }
+
+            /* Reply form */
+            .reply-form {
+                background-color: #e8f5d8;
+                padding: 20px;
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+            }
+
+            .reply-form h3 {
+                margin-top: 0;
+                color: #5a7a1a;
+            }
+
+            .reply-form table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .reply-form td {
+                padding: 3px;
+                vertical-align: top;
+            }
+
+            .reply-form input[type="text"],
+            .reply-form textarea {
+                font-family: monospace;
+                padding: 4px;
+                border: 1px solid #ccc;
+                background-color: #fff;
+            }
+
+            .reply-form textarea {
+                width: 100%;
+                height: 120px;
+                resize: vertical;
+                box-sizing: border-box;
+            }
+
+            .file-upload-wrapper {
+                position: relative;
+                display: inline-block;
+            }
+
+            .file-upload-button {
+                background-color: #5a7a1a;
+                color: white;
+                padding: 4px 8px;
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: 0.9em;
+            }
+
+            .file-upload-button:hover {
+                background-color: #4a6a0a;
+            }
+
+            .file-upload-input {
+                position: absolute;
+                left: -9999px;
+            }
+
+            .reply-form button[type="submit"] {
+                background-color: #789922;
+                border: none;
+                padding: 8px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                font-weight: bold;
+            }
+
+            .reply-form button[type="submit"]:hover {
+                background-color: #5a7a1a;
+            }
+
+            /* Nested replies */
+            .nested-replies {
+                margin-left: 30px;
+                border-left: 2px solid #d0e8b8;
+                padding-left: 15px;
+                margin-top: 10px;
+            }
+
+            .collapse-toggle {
+                background: none;
+                border: none;
+                color: #789922;
+                cursor: pointer;
+                font-size: 0.9em;
+                margin-left: 10px;
+                text-decoration: underline;
+            }
+
+            .collapse-toggle:hover {
+                color: #5a7a1a;
+            }
+
+            /* Menu dots */
+            .thread-menu {
+                position: relative;
+                display: inline-block;
+            }
+
+            .menu-dots {
+                background: none;
+                border: none;
+                font-size: 16px;
+                cursor: pointer;
+                padding: 2px 6px;
+            }
+
+            .menu-dropdown {
+                display: none;
+                position: absolute;
+                right: 0;
+                background: white;
+                border: 1px solid #ccc;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                z-index: 100;
+            }
+
+            .menu-dropdown button {
+                display: block;
+                width: 100%;
+                background: none;
+                border: none;
+                padding: 8px 12px;
+                text-align: left;
+                cursor: pointer;
+                font-size: 12px;
+            }
+
+            .menu-dropdown button:hover {
+                background-color: #f0f0f0;
+            }
+
+            /* Footer */
+            .footer {
+                grid-column: 1 / 4;
+                background-color: #d0e8b8;
+                padding: 10px;
+                text-align: center;
+                margin-top: 20px;
+                font-size: 0.9em;
+            }
+
+            .footer a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #334;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 20px;
+                font-style: italic;
+                color: #666;
+            }
+
+            .error {
+                color: #d32f2f;
+                background-color: #ffebee;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #ffcdd2;
+            }
+
+            /* Success/Error Messages */
+            .success-modal,
+            .error-modal {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 2000;
+                display: none;
+            }
+
+            .modal-content {
+                background-color: white;
+                padding: 20px;
+                border-radius: 8px;
+                max-width: 350px;
+                text-align: left;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                border: 2px solid #789922;
+                animation: slideIn 0.3s ease-out;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .success-modal .modal-content {
+                border-color: #4caf50;
+            }
+
+            .error-modal .modal-content {
+                border-color: #f44336;
+            }
+
+            .modal-content h3 {
+                margin-top: 0;
+                color: #5a7a1a;
+            }
+
+            .success-modal .modal-content h3 {
+                color: #4caf50;
+            }
+
+            .error-modal .modal-content h3 {
+                color: #f44336;
+            }
+
+            .modal-button {
+                background-color: #789922;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-family: inherit;
+                border-radius: 3px;
+                margin-top: 15px;
+            }
+
+            .modal-button:hover {
+                background-color: #5a7a1a;
+            }
+
+            /* Right sidebar */
+            .right-sidebar {
+                background-color: #e8f5d8;
+                padding: 10px;
+            }
+
+            .sidebar-box {
+                background-color: #f8f8f8;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+
+            .sidebar-box h3 {
+                margin-top: 0;
+                color: #5a7a1a;
+                font-size: 1em;
+            }
+
+            .ad-box {
+                text-align: center;
+                padding: 15px;
+                background-color: #fff;
+                border: 2px dashed #789922;
+                margin-bottom: 15px;
+                font-size: 0.85em;
+            }
+
+            /* Reply highlight */
+            .post.highlighted {
+                background-color: #d6bad0 !important;
+                border-color: #ba9dbf !important;
+            }
+
+            .post.referenced {
+                background-color: #e8f8e8 !important;
+                border-color: #c0d8c0 !important;
+            }
+
+            /* Popup quote preview */
+            .quote-preview {
+                position: absolute;
+                background-color: #f8fcf8;
+                border: 1px solid #d9d9d9;
+                padding: 10px;
+                max-width: 400px;
+                z-index: 1000;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+                font-size: 0.9em;
+            }
+
+            .quote-preview .post-header {
+                background-color: #e8f5d8;
+                padding: 5px;
+                margin: -10px -10px 5px -10px;
+                border-bottom: 1px solid #d9d9d9;
+                font-size: 0.8em;
+            }
+
+            /* Pagination */
+            .pagination {
+                text-align: center;
+                padding: 10px 0;
+                background-color: #f8fcf8;
+                border: 1px solid #d9d9d9;
+            }
+
+            .pagination button {
+                background-color: #789922;
+                border: none;
+                padding: 8px 15px;
+                cursor: pointer;
+                font-family: inherit;
+                color: white;
+                margin: 0 5px;
+                border-radius: 3px;
+            }
+
+            .pagination button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+            .pagination button:hover:not(:disabled) {
+                background-color: #5a7a1a;
+            }
+
+            .pagination span {
+                padding: 8px 15px;
+                background-color: #d0e8b8;
+                margin: 0 5px;
+                display: inline-block;
+                border-radius: 3px;
+                font-weight: bold;
+            }
+
+            /* Mobile responsive styles */
+            @media screen and (max-width: 768px) {
+                .container {
+                    grid-template-columns: 1fr 240px;
+                    width: 95%;
+                }
+
+                .left-sidebar {
+                    display: none;
+                }
+
+                .header {
+                    grid-column: 1 / 3;
+                }
+
+                .footer {
+                    grid-column: 1 / 3;
+                }
+
+                .nav a {
+                    margin: 0 8px;
+                    font-size: 0.9em;
+                }
+
+                .post {
+                    margin-bottom: 10px;
+                }
+
+                .post-body {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .post-image {
+                    max-width: 100%;
+                    max-height: 200px;
+                }
+
+                .reply-form {
+                    padding: 15px;
+                }
+
+                .reply-form textarea {
+                    height: 100px;
+                }
+
+                .pagination button {
+                    padding: 6px 10px;
+                    margin: 0 2px;
+                    font-size: 0.9em;
+                }
+            }
+
+            @media screen and (max-width: 600px) {
+                .container {
+                    grid-template-columns: 1fr;
+                    width: 98%;
+                }
+
+                .right-sidebar {
+                    display: none;
+                }
+
+                .header {
+                    grid-column: 1;
+                }
+
+                .footer {
+                    grid-column: 1;
+                }
+
+                .nav a {
+                    margin: 0 5px;
+                    font-size: 0.8em;
+                }
+
+                .post-header {
+                    font-size: 0.8em;
+                    padding: 6px 8px;
+                }
+
+                .post-body {
+                    padding: 8px;
+                }
+
+                .thread-title {
+                    font-size: 1.1em;
+                    padding: 8px;
+                }
+
+                .reply-form {
+                    padding: 10px;
+                }
+
+                .reply-form input[type="text"],
+                .reply-form textarea {
+                    font-size: 16px; /* Prevents zoom on iOS */
+                }
+
+                .pagination button {
+                    padding: 4px 8px;
+                    font-size: 0.8em;
+                }
+
+                .pagination span {
+                    padding: 4px 8px;
+                    font-size: 0.8em;
+                }
+            }
+
+            /* Password overlay styles */
+            .password-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                justify-content: center;
+                align-items: center;
+                z-index: 2001;
+            }
+
+            .password-popup {
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 8px;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                border: 2px solid #789922;
+            }
+
+            .password-input {
+                padding: 8px;
+                margin: 10px 0;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                width: 200px;
+            }
+
+            .password-buttons button {
+                background-color: #789922;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-family: inherit;
+                border-radius: 5px;
+                margin: 0 5px;
+                font-weight: bold;
+            }
+
+            .password-buttons button:hover {
+                background-color: #5a7a1a;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>yokona</h1>
+                <div class="nav">
+                    <a href="home.html">Home</a>
+                    <a href="#" onclick="goBackToBoard()">Back to Board</a>
+                    <a href="faq.html">FAQ</a>
+                    <a href="contact.html">Contact</a>
+                    <a href="legal.html">Legal</a>
+                </div>
+            </div>
+
+            <!-- Left sidebar -->
+            <div class="left-sidebar">
+                <div class="vertical-ad"></div>
+            </div>
+
+            <!-- Main content -->
+            <div class="main-content">
+                <div class="top-ad"></div>
+
+                <div class="thread-title" id="thread-title">
+                    Loading green-text thread...
+                </div>
+
+                <div id="posts-container">
+                    <div class="loading">Loading posts...</div>
+                </div>
+
+                <div class="replies-section">
+                    <div class="replies-header">
+                        📝 Replies
+                    </div>
+                    
+                    <div class="reply-form">
+                        <h3>Post Reply</h3>
+                        <form id="reply-form">
+                            <table>
+                                <tr>
+                                    <td>Comment</td>
+                                    <td>
+                                        <textarea id="reply-content" placeholder="Your green-text reply... Use > to start green text lines" required></textarea>
+                                        <div style="margin-top: 5px;">
+                                            <button type="button" onclick="addGreenTextLine()" style="background-color: #789922; color: white; border: none; padding: 4px 8px; margin-right: 5px; cursor: pointer; font-size: 0.9em;">+ Add Line</button>
+                                            <button type="button" onclick="addGreenTextPrefix()" style="background-color: #5a7a1a; color: white; border: none; padding: 4px 8px; cursor: pointer; font-size: 0.9em;">> Green Text</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>File</td>
+                                    <td>
+                                        <div class="file-upload-wrapper">
+                                            <input type="file" id="reply-file" accept="image/*" class="file-upload-input">
+                                            <button type="button" class="file-upload-button" onclick="document.getElementById('reply-file').click()">
+                                                Choose File
+                                            </button>
+                                            <span id="file-name" style="margin-left: 10px; font-size: 0.9em; color: #666;"></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Password:</td>
+                                    <td>
+                                      <input
+                                        type="password"
+                                        id="password"
+                                        name="password"
+                                        placeholder="Optional deletion password"
+                                      />
+                                    </td>
+                                  </tr>
+                                <tr>
+                                    <td></td>
+                                    <td><button type="submit">Post</button></td>
+                                </tr>
+                            </table>
+                        </form>
+                    </div>
+
+                    <div id="replies-container">
+                        <!-- Replies will be loaded here -->
+                    </div>
+                </div>
+
+                <div
+                    id="pagination-bottom"
+                    class="pagination"
+                    style="margin-top: 20px"
+                >
+                    <!-- Bottom pagination will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Right sidebar -->
+            <div class="right-sidebar">
+                <div class="ad-box">
+                    <h3>🍀 GREEN-TEXT STORIES</h3>
+                    <p>
+                        <strong>"My First Greentext"</strong><br />
+                        by Anon<br />
+                        Be me, 16, awkward
+                    </p>
+                    <p>
+                        <strong>"Tendies Chronicles"</strong><br />
+                        by NEET Anon<br />
+                        The ultimate collection
+                    </p>
+                    <small>Share your stories!</small>
+                </div>
+
+                <div class="ad-box">
+                    <h3>✍️ WRITING TIPS</h3>
+                    <p>
+                        <strong>Good Green-text Rules:</strong><br />
+                        > Be someone<br />
+                        > Do something<br />
+                        > ???<br />
+                        > Profit
+                    </p>
+                    <small>Keep it real, anons</small>
+                </div>
+
+                <div class="ad-box">
+                    <h3>⚠️ REMINDER</h3>
+                    <p><strong>The stories here are fiction!</strong></p>
+                    <p>
+                        Only a fool would take anything posted here as fact.
+                    </p>
+                    <small>- Management</small>
+                </div>
+            </div>
+
+            <div class="footer">
+                <a href="faq.html">FAQ</a> |
+                <a href="contact.html">Contact</a> |
+                <a href="legal.html">Legal</a> |
+                <a href="#">Donate</a>
+                <p>Yokona - Since 2025</p>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="success-modal" id="success-modal">
+            <div class="modal-content">
+                <h3>✓ Success!</h3>
+                <p id="success-message">Reply posted successfully!</p>
+                <button
+                    class="modal-button"
+                    onclick="closeModal('success-modal')"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div class="error-modal" id="error-modal">
+            <div class="modal-content">
+                <h3>✗ Error</h3>
+                <p id="error-message">Something went wrong!</p>
+                <button
+                    class="modal-button"
+                    onclick="closeModal('error-modal')"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+
+        <!-- Quote preview popup -->
+        <div
+            id="quote-preview"
+            class="quote-preview"
+            style="display: none"
+        ></div>
+
+        <!-- Password Overlay -->
+        <div class="password-overlay" id="password-overlay">
+            <div class="password-popup">
+                <h3 id="delete-title">Delete</h3>
+                <p>Enter deletion password:</p>
+                <input type="password" id="delete-password" class="password-input">
+                <div class="password-buttons">
+                    <button onclick="confirmDelete()">Confirm</button>
+                    <button onclick="cancelDelete()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const threadId = new URLSearchParams(window.location.search).get(
+                "thread",
+            );
+            let threadData = null;
+            let postCounter = 1;
+            let currentPage = 1;
+            let totalPages = 1;
+            const postsPerPage = 15;
+            let replyStructure = {}; // Store reply relationships
+
+            // Initialize thread with optimization
+            async function initThread() {
+                if (!threadId) {
+                    document.getElementById("posts-container").innerHTML =
+                        '<div class="error">No thread ID provided</div>';
+                    return;
+                }
+
+                // Show loading indicator
+                document.getElementById("posts-container").innerHTML = 
+                    '<div class="loading">⟳ Loading posts...</div>';
+
+                try {
+                    // Add timeout and cache headers
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                    
+                    const response = await fetch(
+                        `/api/threads/${threadId}?page=${currentPage}&limit=${postsPerPage}`,
+                        {
+                            signal: controller.signal,
+                            headers: {
+                                'Cache-Control': 'max-age=30' // Cache for 30 seconds
+                            }
+                        }
+                    );
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) throw new Error("Thread not found");
+
+                    const data = await response.json();
+                    threadData = data;
+                    totalPages = data.totalPages || 1;
+                    
+                    // Use requestAnimationFrame for smooth rendering
+                    requestAnimationFrame(() => {
+                        renderThread(data);
+                        loadReplies();
+                        updatePagination();
+                    });
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        document.getElementById("posts-container").innerHTML =
+                            `<div class="error">Request timed out. <button onclick="initThread()" style="margin-left: 10px; background: #789922; color: white; border: none; padding: 5px 10px; cursor: pointer;">Retry</button></div>`;
+                    } else {
+                        document.getElementById("posts-container").innerHTML =
+                            `<div class="error">Error loading thread: ${error.message} <button onclick="initThread()" style="margin-left: 10px; background: #789922; color: white; border: none; padding: 5px 10px; cursor: pointer;">Retry</button></div>`;
+                    }
+                }
+            }
+
+            // Load and display replies
+            async function loadReplies() {
+                try {
+                    const response = await fetch(`/api/threads/${threadId}/posts`);
+                    if (!response.ok) throw new Error("Failed to load replies");
+                    
+                    const posts = await response.json();
+                    renderReplies(posts);
+                } catch (error) {
+                    document.getElementById("replies-container").innerHTML =
+                        `<div class="error">Error loading replies: ${error.message}</div>`;
+                }
+            }
+
+            // Render replies with nesting
+            function renderReplies(posts) {
+                const repliesContainer = document.getElementById("replies-container");
+                
+                if (posts.length === 0) {
+                    repliesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No replies yet. Be the first to reply!</div>';
+                    return;
+                }
+
+                // Build reply structure
+                replyStructure = {};
+                posts.forEach(post => {
+                    const replyToMatch = post.content.match(/>>(\d+)/);
+                    const replyTo = replyToMatch ? parseInt(replyToMatch[1]) : null;
+                    
+                    if (!replyStructure[post.id]) {
+                        replyStructure[post.id] = { post, children: [], replyTo };
+                    }
+                    
+                    if (replyTo && replyStructure[replyTo]) {
+                        replyStructure[replyTo].children.push(replyStructure[post.id]);
+                    }
+                });
+
+                // Render top-level posts
+                let repliesHTML = "";
+                posts.forEach((post, index) => {
+                    const isTopLevel = !post.content.match(/>>(\d+)/);
+                    if (isTopLevel) {
+                        repliesHTML += renderPostWithReplies(post, index + 2); // Start from 2 since OP is 1
+                    }
+                });
+
+                repliesContainer.innerHTML = repliesHTML;
+                addQuoteEvents();
+            }
+
+            // Render a post and its nested replies
+            function renderPostWithReplies(post, postNumber) {
+                const date = new Date(post.created_at);
+                const formattedDate =
+                    date.toLocaleDateString("en-US", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        year: "2-digit",
+                    }) +
+                    "(" +
+                    date.toLocaleDateString("en-US", {
+                        weekday: "short",
+                    }) +
+                    ")" +
+                    date.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: false,
+                    });
+
+                const replies = replyStructure[post.id]?.children || [];
+                const collapseButton = replies.length > 0 ? 
+                    `<button class="collapse-toggle" onclick="toggleReplies(${post.id})">
+                        ▼ Collapse (${replies.length}) replies
+                    </button>` : '';
+
+                const menuBtn = `
+                    <div class="thread-menu" style="position: relative; display: inline-block;">
+                        <button class="menu-dots" onclick="togglePostMenu(${post.id}, event)">⋯</button>
+                        <div class="menu-dropdown" id="post-menu-${post.id}" style="display: none;">
+                            <button onclick="deletePost(${post.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+
+                let html = `
+                    <div class="post" id="p${postNumber}" data-post-id="${postNumber}">
+                        <div class="post-header">
+                            <span class="post-name">Anonymous</span>
+                            <span class="post-date">${formattedDate}</span>
+                            <span class="post-id">ID: ${generateRandomId()}</span>
+                            <span class="post-no">No. ${postNumber}</span>
+                            <a href="#p${postNumber}" class="quotelink" onclick="quotePost(${postNumber})">Reply</a>
+                            ${collapseButton}
+                            ${menuBtn}
+                        </div>
+                        <div class="post-body">
+                            ${post.image_data ? `<img src="/api/images/post/${post.id}" alt="Post image" class="post-image" onclick="enlargeImage('/api/images/post/${post.id}')" onerror="this.style.display='none'">` : ""}
+                            <div class="post-content">${formatPostContent(post.content, postNumber)}</div>
+                        </div>
+                `;
+
+                // Add nested replies
+                if (replies.length > 0) {
+                    html += `<div class="nested-replies" id="replies-${post.id}">`;
+                    replies.forEach((replyData, index) => {
+                        html += renderPostWithReplies(replyData.post, postNumber + index + 1);
+                    });
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
+                return html;
+            }
+
+            // Toggle nested replies
+            function toggleReplies(postId) {
+                const repliesDiv = document.getElementById(`replies-${postId}`);
+                const button = event.target;
+                
+                if (repliesDiv.style.display === 'none') {
+                    repliesDiv.style.display = 'block';
+                    button.innerHTML = button.innerHTML.replace('▶', '▼').replace('Expand', 'Collapse');
+                } else {
+                    repliesDiv.style.display = 'none';
+                    button.innerHTML = button.innerHTML.replace('▼', '▶').replace('Collapse', 'Expand');
+                }
+            }
+
+            // Toggle post menu
+            function togglePostMenu(postId, event) {
+                event.stopPropagation();
+                const menu = document.getElementById(`post-menu-${postId}`);
+                // Close all other menus
+                document.querySelectorAll('.menu-dropdown').forEach(m => {
+                    if (m.id !== `post-menu-${postId}`) m.style.display = 'none';
+                });
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }
+
+            // Close menus when clicking outside
+            document.addEventListener('click', function() {
+                document.querySelectorAll('.menu-dropdown').forEach(m => {
+                    m.style.display = 'none';
+                });
+            });
+
+            let deleteTargetId = null;
+            let deleteType = null;
+
+            // Delete post
+            function deletePost(postId) {
+                deleteTargetId = postId;
+                deleteType = 'post';
+                document.getElementById('delete-title').textContent = 'Delete Post';
+                document.getElementById('password-overlay').style.display = 'flex';
+                document.getElementById('delete-password').focus();
+            }
+
+            // Delete thread
+            function deleteThread(threadId) {
+                deleteTargetId = threadId;
+                deleteType = 'thread';
+                document.getElementById('delete-title').textContent = 'Delete Thread';
+                document.getElementById('password-overlay').style.display = 'flex';
+                document.getElementById('delete-password').focus();
+            }
+
+            async function confirmDelete() {
+                const password = document.getElementById('delete-password').value;
+                if (!password) return;
+
+                try {
+                    const endpoint = deleteType === 'thread' ? `/api/threads/${deleteTargetId}` : `/api/posts/${deleteTargetId}`;
+                    const response = await fetch(endpoint, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ password })
+                    });
+
+                    if (response.ok) {
+                        showModal('success', `${deleteType === 'thread' ? 'Thread' : 'Post'} deleted successfully`);
+                        if (deleteType === 'thread') {
+                            setTimeout(() => {
+                                window.location.href = 'green-text.html';
+                            }, 1000);
+                        } else {
+                            loadReplies(); // Reload replies
+                        }
+                    } else {
+                        const error = await response.json();
+                        showModal('error', error.error || `Failed to delete ${deleteType}`);
+                    }
+                } catch (error) {
+                    showModal('error', `Error deleting ${deleteType}: ` + error.message);
+                }
+
+                cancelDelete();
+            }
+
+            function cancelDelete() {
+                document.getElementById('password-overlay').style.display = 'none';
+                document.getElementById('delete-password').value = '';
+                deleteTargetId = null;
+                deleteType = null;
+            }
+
+            // Handle Enter key in password input
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('delete-password').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        confirmDelete();
+                    }
+                });
+            });
+
+            // Format green-text content
+            function formatContent(content) {
+                return content.split('\n').map(line => {
+                    line = line.trim();
+                    if (line.startsWith('>')) {
+                        return `<span class="green-text">${line}</span>`;
+                    }
+                    // Handle quote links
+                    line = line.replace(/&gt;&gt;(\d+)/g, '<a href="#" style="color: #d00; text-decoration: none;">&gt;&gt;$1</a>');
+                    return line;
+                }).join('<br>');
+            }
+
+            // Render thread and posts
+            function renderThread(data) {
+                const { thread } = data;
+
+                document.getElementById("thread-title").textContent =
+                    thread.subject || "Green-Text Story";
+
+                const date = new Date(thread.created_at);
+                const formattedDate =
+                    date.toLocaleDateString("en-US", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        year: "2-digit",
+                    }) +
+                    "(" +
+                    date.toLocaleDateString("en-US", {
+                        weekday: "short",
+                    }) +
+                    ")" +
+                    date.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: false,
+                    });
+
+                const menuBtn = `
+                    <div class="thread-menu" style="position: relative; display: inline-block;">
+                        <button class="menu-dots" onclick="togglePostMenu(${thread.id}, event)">⋯</button>
+                        <div class="menu-dropdown" id="post-menu-${thread.id}" style="display: none;">
+                            <button onclick="deleteThread(${thread.id})">Delete Thread</button>
+                        </div>
+                    </div>
+                `;
+
+                const postBody =
+                    (thread.image_data || thread.image_type) || thread.content
+                        ? `
+                    <div class="post-body">
+                        ${(thread.image_data || thread.image_type) ? `<img src="/api/images/thread/${thread.id}" alt="Thread image" class="post-image" onclick="enlargeImage('/api/images/thread/${thread.id}')" onerror="this.style.display='none'">` : ""}
+                        <div class="post-content">${formatPostContent(thread.content, 1)}</div>
+                    </div>
+                `
+                        : `<div class="post-body"><div class="post-content">${formatPostContent(thread.content, 1)}</div></div>`;
+
+                const postsHTML = `
+                    <div class="post" id="p1" data-post-id="1">
+                        <div class="post-header">
+                            ${thread.subject ? `<span style="color: #0f0c5d; font-weight: bold;">${thread.subject}</span> ` : ""}
+                            <span class="post-name">Anonymous</span>
+                            <span class="post-date">${formattedDate}</span>
+                            <span class="post-id">ID: ${generateRandomId()}</span>
+                            <span class="post-no">No. 1</span>
+                            <a href="#p1" class="quotelink" onclick="quotePost(1)">Reply</a>
+                            ${menuBtn}
+                        </div>
+                        ${postBody}
+                    </div>
+                `;
+
+                document.getElementById("posts-container").innerHTML = postsHTML;
+
+                // Update post counter for new posts
+                postCounter = 2;
+
+                // Re-attach form event listener
+                const replyForm = document.getElementById("reply-form");
+                if (replyForm) {
+                    replyForm.addEventListener("submit", createReply);
+                }
+
+                // Re-attach file input event listener
+                const fileInput = document.getElementById("reply-file");
+                if (fileInput) {
+                    fileInput.addEventListener("change", function (e) {
+                        const fileName = document.getElementById("file-name");
+                        if (e.target.files.length > 0) {
+                            fileName.textContent = e.target.files[0].name;
+                        } else {
+                            fileName.textContent = "";
+                        }
+                    });
+                }
+
+                // Add hover events for quote links
+                addQuoteEvents();
+            }
+
+            // Generate random ID (like 4chan)
+            function generateRandomId() {
+                const chars =
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                let result = "";
+                for (let i = 0; i < 8; i++) {
+                    result += chars.charAt(
+                        Math.floor(Math.random() * chars.length),
+                    );
+                }
+                return result;
+            }
+
+            // Scroll to and highlight referenced post
+            function scrollToAndHighlightPost(postNumber) {
+                // Remove previous highlights
+                document.querySelectorAll(".post").forEach((p) => {
+                    p.classList.remove("highlighted", "referenced");
+                });
+
+                // Highlight the referenced post
+                const post = document.getElementById(`p${postNumber}`);
+                if (post) {
+                    post.classList.add("highlighted");
+                    post.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                    });
+
+                    // Remove highlight after 5 seconds
+                    setTimeout(() => {
+                        post.classList.remove("highlighted");
+                    }, 5000);
+                }
+            }
+
+            // Highlight referenced post (legacy function for compatibility)
+            function highlightPost(postNumber) {
+                scrollToAndHighlightPost(postNumber);
+            }
+
+            // Quote post (add >>number to reply box)
+            function quotePost(postNumber) {
+                const replyContent = document.getElementById("reply-content");
+                const currentText = replyContent.value;
+                const quoteText = `>>${postNumber}\n`;
+
+                if (currentText && !currentText.endsWith("\n")) {
+                    replyContent.value = currentText + "\n" + quoteText;
+                } else {
+                    replyContent.value = currentText + quoteText;
+                }
+
+                replyContent.focus();
+            }
+
+            // Add quote preview events
+            function addQuoteEvents() {
+                const quoteLinks = document.querySelectorAll(".quotelink");
+                const preview = document.getElementById("quote-preview");
+
+                quoteLinks.forEach((link) => {
+                    link.addEventListener("mouseenter", function (e) {
+                        const postNumber = this.textContent.replace(">>", "");
+                        const post = document.getElementById(`p${postNumber}`);
+
+                        if (post) {
+                            const postClone = post.cloneNode(true);
+                            postClone.style.maxWidth = "400px";
+                            postClone.style.margin = "0";
+                            preview.innerHTML = postClone.outerHTML;
+
+                            preview.style.display = "block";
+                            preview.style.left = e.pageX + 10 + "px";
+                            preview.style.top = e.pageY - 10 + "px";
+                        }
+                    });
+
+                    link.addEventListener("mouseleave", function () {
+                        preview.style.display = "none";
+                    });
+
+                    link.addEventListener("mousemove", function (e) {
+                        if (preview.style.display === "block") {
+                            preview.style.left = e.pageX + 10 + "px";
+                            preview.style.top = e.pageY - 10 + "px";
+                        }
+                    });
+                });
+            }
+
+            // Format post content with green text and quote links
+            function formatPostContent(content, postNumber) {
+                content = content || ""; // Handle null content
+
+                // Format green text
+                content = content.split('\n').map(line => {
+                    line = line.trim();
+                    if (line.startsWith('>')) {
+                        return `<span class="green-text">${line}</span>`;
+                    }
+                    return line;
+                }).join('<br>');
+
+                // Handle quote links
+                content = content.replace(/&gt;&gt;(\d+)/g, (match, number) => {
+                    return `<a href="#p${number}" class="quotelink" onclick="highlightPost(${number})">&gt;&gt;${number}</a>`;
+                });
+
+                return content;
+            }
+
+            // Enlarge image
+            function enlargeImage(imageSrc) {
+                window.open(imageSrc, '_blank');
+            }
+
+            // Show modal
+            function showModal(type, message) {
+                const modal = document.getElementById(`${type}-modal`);
+                const messageElement = document.getElementById(`${type}-message`);
+                messageElement.textContent = message;
+                modal.style.display = 'block';
+
+                setTimeout(() => {
+                    closeModal(type + '-modal');
+                }, 3000); // Close after 3 seconds
+            }
+
+            // Close modal
+            function closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+
+            // Green-text helper functions
+            function addGreenTextLine() {
+                const textarea = document.getElementById("reply-content");
+                const currentText = textarea.value;
+                if (currentText && !currentText.endsWith("\n")) {
+                    textarea.value = currentText + "\n";
+                } else {
+                    textarea.value = currentText;
+                }
+                textarea.focus();
+                textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+            }
+
+            function addGreenTextPrefix() {
+                const textarea = document.getElementById("reply-content");
+                const currentText = textarea.value;
+                const cursorPosition = textarea.selectionStart;
+                
+                // Find the start of the current line
+                const lines = currentText.substring(0, cursorPosition).split('\n');
+                const currentLine = lines[lines.length - 1];
+                
+                // If line doesn't start with >, add it
+                if (!currentLine.trim().startsWith('>')) {
+                    const lineStart = cursorPosition - currentLine.length;
+                    const newText = currentText.substring(0, lineStart) + '>' + currentText.substring(lineStart);
+                    textarea.value = newText;
+                    textarea.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+                }
+                
+                textarea.focus();
+            }
+
+            // Create reply
+            async function createReply(event) {
+                event.preventDefault();
+
+                const content = document.getElementById("reply-content").value;
+                const fileInput = document.getElementById("reply-file");
+                const password = document.getElementById("password").value;
+
+                if (!content) {
+                    showModal('error', 'Please enter some content for your reply');
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append("content", content);
+                    formData.append("password", password);
+                    if (fileInput.files[0]) {
+                        formData.append("image", fileInput.files[0]);
+                    }
+
+                    const response = await fetch(`/api/threads/${threadId}/posts`, {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || "Failed to create reply");
+                    }
+
+                    // Reset form
+                    document.getElementById("reply-form").reset();
+                    document.getElementById("file-name").textContent = "";
+
+                    // Reload replies to show new reply
+                    await loadReplies();
+
+                    showModal('success', 'Reply posted successfully!');
+                } catch (error) {
+                    console.error("Error creating reply:", error);
+                    showModal('error', `Error: ${error.message}`);
+                }
+            }
+
+            // Update pagination
+            function updatePagination() {
+                const paginationContainer = document.getElementById("pagination-bottom");
+                
+                if (totalPages <= 1) {
+                    paginationContainer.innerHTML = "";
+                    return;
+                }
+
+                let paginationHTML = `
+                    <button onclick="changePage(1)" ${currentPage === 1 ? "disabled" : ""}>« First</button>
+                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>‹ Prev</button>
+                    <span>Page ${currentPage} of ${totalPages}</span>
+                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>Next ›</button>
+                    <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""}>Last »</button>
+                `;
+
+                paginationContainer.innerHTML = paginationHTML;
+            }
+
+            // Change page
+            function changePage(page) {
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                initThread();
+            }
+
+            // Go back to board
+            function goBackToBoard() {
+                window.location.href = 'green-text.html';
+            }
+
+            // Initialize when page loads
+            document.addEventListener("DOMContentLoaded", initThread);
+        </script>
+    </body>
+</html>
