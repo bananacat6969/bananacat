@@ -204,6 +204,28 @@ async function initDB() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+
+      // Add missing columns if they don't exist
+      try {
+        await query('ALTER TABLE threads ADD COLUMN IF NOT EXISTS is_nsfw BOOLEAN DEFAULT FALSE');
+        console.log('✓ Added is_nsfw column to threads table (if not exists)');
+      } catch (e) {
+        console.log('- is_nsfw column already exists in threads table');
+      }
+
+      try {
+        await query('ALTER TABLE threads ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)');
+        console.log('✓ Added password_hash column to threads table (if not exists)');
+      } catch (e) {
+        console.log('- password_hash column already exists in threads table');
+      }
+
+      try {
+        await query('ALTER TABLE posts ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)');
+        console.log('✓ Added password_hash column to posts table (if not exists)');
+      } catch (e) {
+        console.log('- password_hash column already exists in posts table');
+      }
     } else {
       // SQLite schema
       db.prepare(`
@@ -844,3 +866,4 @@ app.listen(PORT, '0.0.0.0', async () => {
     }
   }
 });
+
