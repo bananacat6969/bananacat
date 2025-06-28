@@ -1,13 +1,12 @@
 
 const { Pool } = require('pg');
+require('dotenv').config();
 
 async function migrateDatabase() {
-  // Use the production DATABASE_URL directly
-  const DATABASE_URL = "postgresql://yokona_w8fl_user:bFqt2Gg9ivoZ3mhl8N7CNhiNY3t4ckqC@dpg-d1fmnn3ipnbc739pao2g-a/yokona_w8fl";
-  
+  // Use the same connection configuration as the main server
   const pool = new Pool({
-    connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false }, // Required for Render
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     max: 1,
     connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 30000,
@@ -15,7 +14,7 @@ async function migrateDatabase() {
 
   try {
     console.log('Connecting to production database...');
-    console.log('Database URL:', DATABASE_URL.replace(/:[^:@]*@/, ':****@')); // Hide password
+    console.log('Database URL present:', !!process.env.DATABASE_URL);
     
     // Test connection
     await pool.query('SELECT 1 as test');
@@ -116,6 +115,11 @@ async function migrateDatabase() {
   } finally {
     await pool.end();
   }
+}
+
+// Set DATABASE_URL if not already set (fallback to your production URL)
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = "postgresql://yokona_w8fl_user:bFqt2Gg9ivoZ3mhl8N7CNhiNY3t4ckqC@dpg-d1fmnn3ipnbc739pao2g-a/yokona_w8fl";
 }
 
 migrateDatabase();
