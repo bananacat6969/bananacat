@@ -50,7 +50,7 @@ async function fixSchema() {
     await pool.query("ALTER TABLE posts ALTER COLUMN image_url TYPE TEXT;");
     console.log("✓ posts.image_url updated to TEXT");
 
-    // Verify the changes
+    // Verify the changes after updating
     const newThreadsSchema = await pool.query(`
       SELECT column_name, data_type, character_maximum_length 
       FROM information_schema.columns 
