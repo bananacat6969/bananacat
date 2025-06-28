@@ -19,14 +19,26 @@ if (hasPostgreSQL) {
   db = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    max: 5, // Reduced max connections for Render
+    min: 1, // Keep minimum connections
+    idleTimeoutMillis: 10000, // Shorter idle timeout
+    connectionTimeoutMillis: 5000, // Longer connection timeout
+    acquireTimeoutMillis: 10000, // How long to wait for a connection
+    allowExitOnIdle: false,
   });
   
-  // Handle pool errors
+  // Handle pool errors with reconnection
   db.on('error', (err) => {
-    console.error('Unexpected error on idle client', err);
+    console.error('Unexpected error on idle client:', err.message);
+    // Don't exit the process, let it recover
+  });
+  
+  db.on('connect', () => {
+    console.log('New client connected to the database');
+  });
+  
+  db.on('remove', () => {
+    console.log('Client removed from pool');
   });
   
   console.log('Using PostgreSQL database');
@@ -49,15 +61,41 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// Database helper functions
-async function query(sql, params = []) {
+// Database helper functions with retry logic
+async function query(sql, params = [], retries = 3) {
   if (hasPostgreSQL) {
-    const client = await db.connect();
-    try {
-      const result = await client.query(sql, params);
-      return result.rows;
-    } finally {
-      client.release();
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      let client;
+      try {
+        client = await db.connect();
+        const result = await client.query(sql, params);
+        return result.rows;
+      } catch (error) {
+        console.error(`Database query attempt ${attempt} failed:`, error.message);
+        
+        if (client) {
+          try {
+            client.release(true); // Release with error flag
+          } catch (releaseError) {
+            console.error('Error releasing client:', releaseError.message);
+          }
+        }
+        
+        if (attempt === retries) {
+          throw error;
+        }
+        
+        // Wait before retry with exponential backoff
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
+      } finally {
+        if (client) {
+          try {
+            client.release();
+          } catch (releaseError) {
+            console.error('Error in finally release:', releaseError.message);
+          }
+        }
+      }
     }
   } else {
     const stmt = db.prepare(sql);
@@ -187,6 +225,27 @@ async function initDB() {
 
 // API Routes
 
+// Database health check
+app.get('/api/health', async (req, res) => {
+  try {
+    if (hasPostgreSQL) {
+      await query('SELECT 1 as health');
+      res.json({ status: 'ok', database: 'postgresql', timestamp: new Date().toISOString() });
+    } else {
+      await query('SELECT 1 as health');
+      res.json({ status: 'ok', database: 'sqlite', timestamp: new Date().toISOString() });
+    }
+  } catch (error) {
+    console.error('Health check failed:', error.message);
+    res.status(503).json({ 
+      status: 'error', 
+      database: hasPostgreSQL ? 'postgresql' : 'sqlite',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Get board info
 app.get('/api/boards/:slug', async (req, res) => {
   try {
@@ -201,8 +260,11 @@ app.get('/api/boards/:slug', async (req, res) => {
     
     res.json(boards[0]);
   } catch (error) {
-    console.error('Error fetching board:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error fetching board:', error.message);
+    res.status(500).json({ 
+      error: 'Database connection error', 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 });
 
@@ -406,7 +468,7 @@ app.get('/api/latest-posts', async (req, res) => {
       ? await query(`SELECT COUNT(*) as total FROM threads`)
       : await query(`SELECT COUNT(*) as total FROM threads`);
     
-    const total = countResult[0].total;
+    const total = countResult[0].total || countResult[0].count || 0;
     const totalPages = Math.ceil(total / limit);
 
     const result = hasPostgreSQL
@@ -426,14 +488,22 @@ app.get('/api/latest-posts', async (req, res) => {
         `, [limit, offset]);
 
     res.json({
-      posts: result,
+      posts: result || [],
       totalPages,
       currentPage: page,
-      total
+      total: parseInt(total)
     });
   } catch (error) {
-    console.error('Error fetching latest posts:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error fetching latest posts:', error.message);
+    
+    // Return empty data instead of error to keep the frontend functional
+    res.json({
+      posts: [],
+      totalPages: 1,
+      currentPage: 1,
+      total: 0,
+      error: 'Database temporarily unavailable'
+    });
   }
 });
 
@@ -457,15 +527,24 @@ app.get('/api/stats', async (req, res) => {
       : await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= date('now')`);
 
     res.json({
-      totalThreads: parseInt(threadsCount[0].count),
-      totalPosts: parseInt(postsCount[0].count),
-      threadsToday: parseInt(todayThreads[0].count),
-      postsToday: parseInt(todayPosts[0].count),
+      totalThreads: parseInt(threadsCount[0].count || 0),
+      totalPosts: parseInt(postsCount[0].count || 0),
+      threadsToday: parseInt(todayThreads[0].count || 0),
+      postsToday: parseInt(todayPosts[0].count || 0),
       siteUsers: Math.floor(Math.random() * 5000) + 2500 // Mock unique users count
     });
   } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error fetching stats:', error.message);
+    
+    // Return default stats instead of error
+    res.json({
+      totalThreads: 0,
+      totalPosts: 0,
+      threadsToday: 0,
+      postsToday: 0,
+      siteUsers: 2500,
+      error: 'Database temporarily unavailable'
+    });
   }
 });
 
