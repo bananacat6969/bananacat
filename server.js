@@ -132,7 +132,8 @@ async function initDB() {
           board_slug VARCHAR(20) REFERENCES boards(slug),
           subject VARCHAR(200),
           content TEXT NOT NULL,
-          image_url TEXT,
+          image_data BYTEA,
+          image_type VARCHAR(50),
           reply_count INTEGER DEFAULT 0,
           views INTEGER DEFAULT 0,
           last_bump_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -145,7 +146,8 @@ async function initDB() {
           id SERIAL PRIMARY KEY,
           thread_id INTEGER REFERENCES threads(id) ON DELETE CASCADE,
           content TEXT NOT NULL,
-          image_url TEXT,
+          image_data BYTEA,
+          image_type VARCHAR(50),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
@@ -167,7 +169,8 @@ async function initDB() {
           board_slug TEXT NOT NULL,
           subject TEXT,
           content TEXT NOT NULL,
-          image_url TEXT,
+          image_data BLOB,
+          image_type TEXT,
           reply_count INTEGER DEFAULT 0,
           views INTEGER DEFAULT 0,
           last_bump_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -181,7 +184,8 @@ async function initDB() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           thread_id INTEGER NOT NULL,
           content TEXT NOT NULL,
-          image_url TEXT,
+          image_data BLOB,
+          image_type TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE
         )
@@ -331,7 +335,8 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
     }
 
     // Handle image upload with validation
-    let imageUrl = null;
+    let imageData = null;
+    let imageType = null;
     if (req.file) {
       // Validate file type
       if (!req.file.mimetype.startsWith('image/')) {
@@ -343,31 +348,20 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
         return res.status(400).json({ error: 'File size too large (max 5MB)' });
       }
       
-      try {
-        // Convert to base64 data URL
-        const base64 = req.file.buffer.toString('base64');
-        imageUrl = `data:${req.file.mimetype};base64,${base64}`;
-        
-        // Check if the resulting data URL is reasonable (prevent extremely large base64)
-        if (imageUrl.length > 10 * 1024 * 1024) { // 10MB text limit
-          return res.status(400).json({ error: 'Image too large when encoded' });
-        }
-      } catch (error) {
-        console.error('Error processing image:', error);
-        return res.status(400).json({ error: 'Error processing image file' });
-      }
+      imageData = req.file.buffer;
+      imageType = req.file.mimetype;
     }
 
     const result = hasPostgreSQL
       ? await query(`
-          INSERT INTO threads (board_slug, subject, content, image_url)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO threads (board_slug, subject, content, image_data, image_type)
+          VALUES ($1, $2, $3, $4, $5)
           RETURNING *
-        `, [slug, subject || null, content, imageUrl])
+        `, [slug, subject || null, content, imageData, imageType])
       : await query(`
-          INSERT INTO threads (board_slug, subject, content, image_url)
-          VALUES (?, ?, ?, ?)
-        `, [slug, subject || null, content, imageUrl]);
+          INSERT INTO threads (board_slug, subject, content, image_data, image_type)
+          VALUES (?, ?, ?, ?, ?)
+        `, [slug, subject || null, content, imageData, imageType]);
 
     res.json(result[0] || { id: result.lastInsertRowid });
   } catch (error) {
@@ -439,7 +433,8 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
       return res.status(404).json({ error: 'Thread not found' });
     }
 
-    let imageUrl = null;
+    let imageData = null;
+    let imageType = null;
     if (req.file) {
       // Validate file type
       if (!req.file.mimetype.startsWith('image/')) {
@@ -451,32 +446,21 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
         return res.status(400).json({ error: 'File size too large (max 5MB)' });
       }
       
-      try {
-        // Convert to base64 data URL
-        const base64 = req.file.buffer.toString('base64');
-        imageUrl = `data:${req.file.mimetype};base64,${base64}`;
-        
-        // Check if the resulting data URL is reasonable
-        if (imageUrl.length > 10 * 1024 * 1024) { // 10MB text limit
-          return res.status(400).json({ error: 'Image too large when encoded' });
-        }
-      } catch (error) {
-        console.error('Error processing image:', error);
-        return res.status(400).json({ error: 'Error processing image file' });
-      }
+      imageData = req.file.buffer;
+      imageType = req.file.mimetype;
     }
 
     // Create post
     const postResult = hasPostgreSQL
       ? await query(`
-          INSERT INTO posts (thread_id, content, image_url)
-          VALUES ($1, $2, $3)
+          INSERT INTO posts (thread_id, content, image_data, image_type)
+          VALUES ($1, $2, $3, $4)
           RETURNING *
-        `, [id, content, imageUrl])
+        `, [id, content, imageData, imageType])
       : await query(`
-          INSERT INTO posts (thread_id, content, image_url)
-          VALUES (?, ?, ?)
-        `, [id, content, imageUrl]);
+          INSERT INTO posts (thread_id, content, image_data, image_type)
+          VALUES (?, ?, ?, ?)
+        `, [id, content, imageData, imageType]);
 
     // Update thread reply count and bump time
     if (hasPostgreSQL) {
@@ -547,6 +531,53 @@ app.get('/api/latest-posts', async (req, res) => {
       total: 0,
       error: 'Database temporarily unavailable'
     });
+  }
+});
+
+// Serve images
+app.get('/api/images/thread/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = hasPostgreSQL
+      ? await query('SELECT image_data, image_type FROM threads WHERE id = $1', [id])
+      : await query('SELECT image_data, image_type FROM threads WHERE id = ?', [id]);
+    
+    if (result.length === 0 || !result[0].image_data) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    
+    const { image_data, image_type } = result[0];
+    
+    res.set('Content-Type', image_type);
+    res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.send(image_data);
+  } catch (error) {
+    console.error('Error serving thread image:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/images/post/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = hasPostgreSQL
+      ? await query('SELECT image_data, image_type FROM posts WHERE id = $1', [id])
+      : await query('SELECT image_data, image_type FROM posts WHERE id = ?', [id]);
+    
+    if (result.length === 0 || !result[0].image_data) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    
+    const { image_data, image_type } = result[0];
+    
+    res.set('Content-Type', image_type);
+    res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.send(image_data);
+  } catch (error) {
+    console.error('Error serving post image:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
