@@ -454,6 +454,39 @@
                     font-size: 0.8em;
                 }
             }
+
+            .thread-stats {
+                font-size: 0.9em;
+                color: #666;
+                margin-top: 10px;
+                padding-top: 5px;
+                border-top: 1px dashed #ccc;
+            }
+
+            .nsfw-tag {
+                background-color: #ff6b6b;
+                color: white;
+                padding: 2px 6px;
+                font-size: 10px;
+                font-weight: bold;
+                border-radius: 3px;
+                margin-left: 5px;
+            }
+
+            .delete-btn {
+                background-color: #ff6b6b;
+                color: white;
+                border: none;
+                padding: 2px 8px;
+                font-size: 10px;
+                cursor: pointer;
+                border-radius: 3px;
+                margin-left: 10px;
+            }
+
+            .delete-btn:hover {
+                background-color: #ff5252;
+            }
         </style>
     </head>
     <body>
@@ -523,6 +556,22 @@
                                 "
                             ></span>
                         </div>
+                        <div class="form-row">
+                        <label>Password:</label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Optional deletion password"
+                        />
+                    </div>
+                    <div class="form-row">
+                        <label></label>
+                        <div>
+                            <input type="checkbox" id="isNsfw" name="isNsfw" />
+                            <label for="isNsfw">Mark as NSFW</label>
+                        </div>
+                    </div>
                         <div>
                             <button type="submit">Post</button>
                         </div>
@@ -671,6 +720,8 @@
                         day: "numeric",
                         year: "numeric",
                     });
+                    const nsfwTag = thread.is_nsfw ? '<span class="nsfw-tag">NSFW</span>' : '';
+                    const deleteBtn = '<button class="delete-btn" onclick="deleteThread(' + thread.id + ')">Delete</button>';
 
                     threadsHTML += `
                     <div class="thread-item" onclick="viewThread(${thread.id})">
@@ -679,6 +730,8 @@
                         <div class="thread-stats">
                             ${postDate} | ${thread.reply_count || 0} replies |  ${thread.views || 0} views
                         </div>
+						${nsfwTag}
+                        ${deleteBtn}
                     </div>
                 `;
                 });
@@ -710,6 +763,32 @@
                 loadThreads();
             }
 
+            // Delete thread
+            async function deleteThread(threadId) {
+                const password = prompt('Enter deletion password:');
+                if (!password) return;
+
+                try {
+                    const response = await fetch(`/api/threads/${threadId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ password })
+                    });
+
+                    if (response.ok) {
+                        alert('Thread deleted successfully');
+                        loadThreads();
+                    } else {
+                        const error = await response.json();
+                        alert(error.error || 'Failed to delete thread');
+                    }
+                } catch (error) {
+                    alert('Error deleting thread: ' + error.message);
+                }
+            }
+
             // Create new thread
             async function createThread(event) {
                 event.preventDefault();
@@ -717,6 +796,9 @@
                 const subject = document.getElementById("thread-subject").value;
                 const content = document.getElementById("thread-content").value;
                 const fileInput = document.getElementById("thread-file");
+				const password = document.getElementById("password").value;
+                const isNsfw = document.getElementById("isNsfw").checked;
+
 
                 if (!content) {
                     showModal(
@@ -730,6 +812,8 @@
                     const formData = new FormData();
                     formData.append("subject", subject);
                     formData.append("content", content);
+					formData.append("password", password);
+                    formData.append("isNsfw", isNsfw);
                     if (fileInput.files[0]) {
                         formData.append("image", fileInput.files[0]);
                     }
