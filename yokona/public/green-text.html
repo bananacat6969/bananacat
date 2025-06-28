@@ -555,9 +555,11 @@
                                 style="width: 100%; margin-top: 5px; padding: 5px; border: 1px solid #ccc; box-sizing: border-box;"
                             />
                         </div>
-                        <div style="margin-bottom: 10px; display: flex; align-items: center;">
-                            <input type="checkbox" id="isNsfw" name="isNsfw" style="margin-right: 5px;" />
-                            <label for="isNsfw">Mark as NSFW</label>
+                        <div style="margin-bottom: 10px;">
+                            <label for="isNsfw" style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="isNsfw" name="isNsfw" style="margin-right: 8px; margin-left: 0;" />
+                                Mark as NSFW
+                            </label>
                         </div>
                         <div>
                             <button type="submit">Post Story</button>
@@ -626,25 +628,53 @@
                 }).join('<br>');
             }
 
-            // Load threads
+            // Load threads with optimization
             async function loadThreads() {
                 const threadsContainer = document.getElementById("threads-container");
-                threadsContainer.innerHTML = '<div class="loading">Loading green-text stories...</div>';
+                
+                // Show loading with spinner
+                threadsContainer.innerHTML = '<div class="loading">⟳ Loading green-text stories...</div>';
 
                 try {
-                    const response = await fetch(`/api/boards/${boardSlug}/threads?page=${currentPage}&limit=10`);
+                    // Add timeout and cache headers
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                    
+                    const response = await fetch(`/api/boards/${boardSlug}/threads?page=${currentPage}&limit=10`, {
+                        signal: controller.signal,
+                        headers: {
+                            'Cache-Control': 'max-age=60' // Cache for 1 minute
+                        }
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
                     if (!response.ok) throw new Error("Failed to load threads");
 
                     const data = await response.json();
                     totalPages = data.totalPages;
-                    renderThreads(data.threads);
-                    updatePagination();
+                    
+                    // Use requestAnimationFrame for smooth rendering
+                    requestAnimationFrame(() => {
+                        renderThreads(data.threads);
+                        updatePagination();
+                    });
                 } catch (error) {
-                    threadsContainer.innerHTML = `
-                    <div class="error">
-                        Error loading threads: ${error.message}
-                    </div>
-                `;
+                    if (error.name === 'AbortError') {
+                        threadsContainer.innerHTML = `
+                        <div class="error">
+                            Request timed out. Please try again.
+                            <button onclick="loadThreads()" style="margin-left: 10px; background: #789922; color: white; border: none; padding: 5px 10px; cursor: pointer;">Retry</button>
+                        </div>
+                    `;
+                    } else {
+                        threadsContainer.innerHTML = `
+                        <div class="error">
+                            Error loading threads: ${error.message}
+                            <button onclick="loadThreads()" style="margin-left: 10px; background: #789922; color: white; border: none; padding: 5px 10px; cursor: pointer;">Retry</button>
+                        </div>
+                    `;
+                    }
                 }
             }
 
