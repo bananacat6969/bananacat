@@ -8,11 +8,12 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Database setup - use Supabase PostgreSQL when SUPABASE_URL is available, SQLite otherwise
+// Database setup - use Supabase PostgreSQL in production, SQLite for development
 let db;
-const hasSupabase = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY);
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER;
+const hasSupabase = true; // Force Supabase usage for production
 
-if (hasSupabase) {
+if (isProduction || hasSupabase) {
   // Supabase PostgreSQL for production
   const { Pool } = require('pg');
   
@@ -118,7 +119,7 @@ setInterval(() => {
 
 // Database helper functions with improved retry logic
 async function query(sql, params = [], retries = 3) {
-  if (hasSupabase) {
+  if (isProduction || hasSupabase) {
     for (let attempt = 1; attempt <= retries; attempt++) {
       let client;
       try {
@@ -164,10 +165,12 @@ async function query(sql, params = [], retries = 3) {
   }
 }
 
+
+
 // Initialize database
 async function initDB() {
   try {
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       // PostgreSQL schema
       await query(`
         CREATE TABLE IF NOT EXISTS boards (
@@ -229,6 +232,8 @@ async function initDB() {
       } catch (e) {
         console.log('- password_hash column already exists in posts table');
       }
+
+      
     } else {
       // SQLite schema
       db.prepare(`
@@ -290,7 +295,7 @@ async function initDB() {
     ];
 
     for (const board of boards) {
-      if (hasSupabase) {
+      if (isProduction || hasSupabase) {
         await query(
           'INSERT INTO boards (slug, name, description) VALUES ($1, $2, $3) ON CONFLICT (slug) DO NOTHING',
           [board.slug, board.name, board.description]
@@ -316,7 +321,7 @@ async function initDB() {
 // Database health check
 app.get('/api/health', async (req, res) => {
   try {
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       await query('SELECT 1 as health');
       res.json({ status: 'ok', database: 'supabase-postgresql', timestamp: new Date().toISOString() });
     } else {
@@ -338,7 +343,7 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/boards/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const boards = hasSupabase 
+    const boards = (isProduction || hasSupabase)
       ? await query('SELECT * FROM boards WHERE slug = $1', [slug])
       : await query('SELECT * FROM boards WHERE slug = ?', [slug]);
 
@@ -364,7 +369,7 @@ app.get('/api/boards/:slug/threads', async (req, res) => {
     const limit = parseInt(req.query.limit) || 15;
     const offset = (page - 1) * limit;
 
-    const threads = hasSupabase
+    const threads = (isProduction || hasSupabase)
       ? await query(`
           SELECT * FROM threads 
           WHERE board_slug = $1 
@@ -378,7 +383,7 @@ app.get('/api/boards/:slug/threads', async (req, res) => {
           LIMIT ? OFFSET ?
         `, [slug, limit, offset]);
 
-    const count = hasSupabase
+    const count = (isProduction || hasSupabase)
       ? await query('SELECT COUNT(*) as count FROM threads WHERE board_slug = $1', [slug])
       : await query('SELECT COUNT(*) as count FROM threads WHERE board_slug = ?', [slug]);
 
@@ -407,7 +412,7 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
     }
 
     // Check if board exists
-    const boards = hasSupabase
+    const boards = (isProduction || hasSupabase)
       ? await query('SELECT * FROM boards WHERE slug = $1', [slug])
       : await query('SELECT * FROM boards WHERE slug = ?', [slug]);
 
@@ -436,7 +441,7 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
     const passwordHash = hashPassword(password);
     const isNsfwBool = isNsfw === 'true' || isNsfw === true;
 
-    const result = hasSupabase
+    const result = (isProduction || hasSupabase)
       ? await query(`
           INSERT INTO threads (board_slug, subject, content, image_data, image_type, is_nsfw, password_hash)
           VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -460,7 +465,7 @@ app.get('/api/threads/:id', async (req, res) => {
     const { id } = req.params;
 
     // Get thread info
-    const threads = hasSupabase
+    const threads = (isProduction || hasSupabase)
       ? await query('SELECT * FROM threads WHERE id = $1', [id])
       : await query('SELECT * FROM threads WHERE id = ?', [id]);
 
@@ -469,7 +474,7 @@ app.get('/api/threads/:id', async (req, res) => {
     }
 
     // Get posts
-    const posts = hasSupabase
+    const posts = (isProduction || hasSupabase)
       ? await query(`
           SELECT * FROM posts 
           WHERE thread_id = $1 
@@ -482,7 +487,7 @@ app.get('/api/threads/:id', async (req, res) => {
         `, [id]);
 
     // Increment view count
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       await query('UPDATE threads SET views = views + 1 WHERE id = $1', [id]);
     } else {
       await query('UPDATE threads SET views = views + 1 WHERE id = ?', [id]);
@@ -509,7 +514,7 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
     }
 
     // Check if thread exists
-    const threads = hasSupabase
+    const threads = (isProduction || hasSupabase)
       ? await query('SELECT * FROM threads WHERE id = $1', [id])
       : await query('SELECT * FROM threads WHERE id = ?', [id]);
 
@@ -537,7 +542,7 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
     const passwordHash = hashPassword(password);
 
     // Create post
-    const postResult = hasSupabase
+    const postResult = (isProduction || hasSupabase)
       ? await query(`
           INSERT INTO posts (thread_id, content, image_data, image_type, password_hash)
           VALUES ($1, $2, $3, $4, $5)
@@ -549,7 +554,7 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
         `, [id, content, imageData, imageType, passwordHash]);
 
     // Update thread reply count and bump time
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       await query(`
         UPDATE threads 
         SET reply_count = reply_count + 1, last_bump_at = CURRENT_TIMESTAMP 
@@ -577,14 +582,14 @@ app.get('/api/latest-posts', async (req, res) => {
     const limit = parseInt(req.query.limit) || 15;
     const offset = (page - 1) * limit;
 
-    const countResult = hasSupabase
+    const countResult = (isProduction || hasSupabase)
       ? await query(`SELECT COUNT(*) as total FROM threads`)
       : await query(`SELECT COUNT(*) as total FROM threads`);
 
     const total = countResult[0].total || countResult[0].count || 0;
     const totalPages = Math.ceil(total / limit);
 
-    const result = hasSupabase
+    const result = (isProduction || hasSupabase)
       ? await query(`
           SELECT t.*, b.name as board_name, b.slug as board_slug
           FROM threads t
@@ -625,7 +630,7 @@ app.get('/api/images/thread/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = hasSupabase
+    const result = (isProduction || hasSupabase)
       ? await query('SELECT image_data, image_type FROM threads WHERE id = $1', [id])
       : await query('SELECT image_data, image_type FROM threads WHERE id = ?', [id]);
 
@@ -648,7 +653,7 @@ app.get('/api/images/post/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = hasSupabase
+    const result = (isProduction || hasSupabase)
       ? await query('SELECT image_data, image_type FROM posts WHERE id = $1', [id])
       : await query('SELECT image_data, image_type FROM posts WHERE id = ?', [id]);
 
@@ -680,7 +685,7 @@ app.delete('/api/threads/:id', async (req, res) => {
     const passwordHash = hashPassword(password);
 
     // Check if thread exists and password matches
-    const threads = hasSupabase
+    const threads = (isProduction || hasSupabase)
       ? await query('SELECT * FROM threads WHERE id = $1 AND password_hash = $2', [id, passwordHash])
       : await query('SELECT * FROM threads WHERE id = ? AND password_hash = ?', [id, passwordHash]);
 
@@ -689,7 +694,7 @@ app.delete('/api/threads/:id', async (req, res) => {
     }
 
     // Delete thread (posts will be cascade deleted)
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       await query('DELETE FROM threads WHERE id = $1', [id]);
     } else {
       await query('DELETE FROM threads WHERE id = ?', [id]);
@@ -715,7 +720,7 @@ app.delete('/api/posts/:id', async (req, res) => {
     const passwordHash = hashPassword(password);
 
     // Check if post exists and password matches
-    const posts = hasSupabase
+    const posts = (isProduction || hasSupabase)
       ? await query('SELECT * FROM posts WHERE id = $1 AND password_hash = $2', [id, passwordHash])
       : await query('SELECT * FROM posts WHERE id = ? AND password_hash = ?', [id, passwordHash]);
 
@@ -726,14 +731,14 @@ app.delete('/api/posts/:id', async (req, res) => {
     const threadId = posts[0].thread_id;
 
     // Delete post
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       await query('DELETE FROM posts WHERE id = $1', [id]);
     } else {
       await query('DELETE FROM posts WHERE id = ?', [id]);
     }
 
     // Update thread reply count
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       await query('UPDATE threads SET reply_count = reply_count - 1 WHERE id = $1', [threadId]);
     } else {
       await query('UPDATE threads SET reply_count = reply_count - 1 WHERE id = ?', [threadId]);
@@ -749,19 +754,19 @@ app.delete('/api/posts/:id', async (req, res) => {
 // Get site statistics
 app.get('/api/stats', async (req, res) => {
   try {
-    const threadsCount = hasSupabase
+    const threadsCount = (isProduction || hasSupabase)
       ? await query('SELECT COUNT(*) as count FROM threads')
       : await query('SELECT COUNT(*) as count FROM threads');
 
-    const postsCount = hasSupabase
+    const postsCount = (isProduction || hasSupabase)
       ? await query('SELECT COUNT(*) as count FROM posts')
       : await query('SELECT COUNT(*) as count FROM posts');
 
-    const todayThreads = hasSupabase
+    const todayThreads = (isProduction || hasSupabase)
       ? await query(`SELECT COUNT(*) as count FROM threads WHERE created_at >= CURRENT_DATE`)
       : await query(`SELECT COUNT(*) as count FROM threads WHERE created_at >= date('now')`);
 
-    const todayPosts = hasSupabase
+    const todayPosts = (isProduction || hasSupabase)
       ? await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= CURRENT_DATE`)
       : await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= date('now')`);
 
@@ -830,7 +835,7 @@ app.get('*', (req, res) => {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('Received SIGINT, shutting down gracefully');
-  if (hasSupabase) {
+  if (isProduction || hasSupabase) {
     await db.end();
   }
   process.exit(0);
@@ -838,7 +843,7 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down gracefully');
-  if (hasSupabase) {
+  if (isProduction || hasSupabase) {
     await db.end();
   }
   process.exit(0);
@@ -848,11 +853,10 @@ process.on('SIGTERM', async () => {
 app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Database: ${hasSupabase ? 'Supabase PostgreSQL' : 'SQLite'}`);
+  console.log(`Production mode: ${isProduction}`);
+  console.log(`Database: ${(isProduction || hasSupabase) ? 'Supabase PostgreSQL' : 'SQLite'}`);
 
-  if (hasSupabase) {
-    console.log('SUPABASE_URL present:', !!process.env.SUPABASE_URL);
-    console.log('SUPABASE_SERVICE_KEY present:', !!process.env.SUPABASE_SERVICE_KEY);
+  if (isProduction || hasSupabase) {
     console.log('Connected to Supabase PostgreSQL at:', 'db.yxppeiyytciuvzeskukw.supabase.co');
   }
 
@@ -861,7 +865,7 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log('Database initialization completed successfully');
   } catch (error) {
     console.error('Failed to initialize database:', error);
-    if (hasSupabase) {
+    if (isProduction || hasSupabase) {
       console.error('Make sure you have run the init-supabase.sql script in your Supabase SQL editor');
       console.error('Connection details: host=db.yxppeiyytciuvzeskukw.supabase.co, database=postgres');
     }
