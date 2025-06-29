@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -11,40 +12,37 @@ const PORT = process.env.PORT || 5000;
 // Database setup - use Supabase PostgreSQL in production, SQLite for development
 let db;
 const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER;
-const hasSupabase = true; // Force Supabase usage for production
+const hasSupabase = process.env.SUPABASE_URL || isProduction;
 
-if (isProduction || hasSupabase) {
+if (hasSupabase) {
   // Supabase PostgreSQL for production
   const { Pool } = require('pg');
   
-  db = new Pool({
-    host: 'db.yxppeiyytciuvzeskukw.supabase.co',
-    port: 5432,
-    database: 'postgres',
-    user: 'postgres',
-    password: 'iLovePlasticGirl!88',
+  // Use environment variables with fallbacks
+  const dbConfig = {
+    connectionString: process.env.DATABASE_URL || `postgresql://postgres:iLovePlasticGirl!88@db.yxppeiyytciuvzeskukw.supabase.co:5432/postgres`,
     ssl: { rejectUnauthorized: false },
-    max: 5,
-    min: 1,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 15000,
-    acquireTimeoutMillis: 20000,
-    allowExitOnIdle: false,
-    statement_timeout: 15000,
-    query_timeout: 15000,
-  });
+    max: 3,
+    min: 0,
+    idleTimeoutMillis: 20000,
+    connectionTimeoutMillis: 10000,
+    acquireTimeoutMillis: 15000,
+    allowExitOnIdle: true,
+    statement_timeout: 10000,
+    query_timeout: 10000,
+    // Force IPv4 to avoid IPv6 connection issues
+    family: 4
+  };
+
+  db = new Pool(dbConfig);
 
   // Handle pool errors with reconnection
   db.on('error', (err) => {
-    console.error('Unexpected error on idle client:', err.message);
+    console.error('Database pool error:', err.message);
   });
 
-  db.on('connect', () => {
-    console.log('New client connected to Supabase database');
-  });
-
-  db.on('remove', () => {
-    console.log('Client removed from pool');
+  db.on('connect', (client) => {
+    console.log('✓ Connected to Supabase PostgreSQL');
   });
 
   console.log('Using Supabase PostgreSQL database');
@@ -118,8 +116,8 @@ setInterval(() => {
 }, 24 * 60 * 60 * 1000); // Run daily
 
 // Database helper functions with improved retry logic
-async function query(sql, params = [], retries = 3) {
-  if (isProduction || hasSupabase) {
+async function query(sql, params = [], retries = 2) {
+  if (hasSupabase) {
     for (let attempt = 1; attempt <= retries; attempt++) {
       let client;
       try {
@@ -127,7 +125,7 @@ async function query(sql, params = [], retries = 3) {
         client = await Promise.race([
           db.connect(),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Connection timeout')), 8000)
+            setTimeout(() => reject(new Error('Connection timeout')), 5000)
           )
         ]);
 
@@ -146,15 +144,30 @@ async function query(sql, params = [], retries = 3) {
         }
 
         if (attempt === retries) {
+          // If all attempts fail, fall back to SQLite if not in production
+          if (!isProduction) {
+            console.log('Falling back to SQLite due to connection issues');
+            const Database = require('better-sqlite3');
+            if (!db.prepare) { // If db is still Pool, switch to SQLite
+              db = new Database('yokona.db');
+            }
+            return querySQLite(sql, params);
+          }
           throw error;
         }
 
-        // Exponential backoff with jitter
-        const delay = Math.pow(2, attempt) * 500 + Math.random() * 500;
+        // Exponential backoff
+        const delay = Math.pow(2, attempt) * 300;
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   } else {
+    return querySQLite(sql, params);
+  }
+}
+
+function querySQLite(sql, params) {
+  try {
     const stmt = db.prepare(sql);
     if (sql.trim().toLowerCase().startsWith('select')) {
       return stmt.all(...params);
@@ -162,15 +175,16 @@ async function query(sql, params = [], retries = 3) {
       const result = stmt.run(...params);
       return [{ id: result.lastInsertRowid, ...result }];
     }
+  } catch (error) {
+    console.error('SQLite query error:', error.message);
+    throw error;
   }
 }
-
-
 
 // Initialize database
 async function initDB() {
   try {
-    if (isProduction || hasSupabase) {
+    if (hasSupabase) {
       // PostgreSQL schema
       await query(`
         CREATE TABLE IF NOT EXISTS boards (
@@ -295,24 +309,34 @@ async function initDB() {
     ];
 
     for (const board of boards) {
-      if (isProduction || hasSupabase) {
-        await query(
-          'INSERT INTO boards (slug, name, description) VALUES ($1, $2, $3) ON CONFLICT (slug) DO NOTHING',
-          [board.slug, board.name, board.description]
-        );
-      } else {
-        try {
+      try {
+        if (hasSupabase) {
+          await query(
+            'INSERT INTO boards (slug, name, description) VALUES ($1, $2, $3) ON CONFLICT (slug) DO NOTHING',
+            [board.slug, board.name, board.description]
+          );
+        } else {
           db.prepare('INSERT OR IGNORE INTO boards (slug, name, description) VALUES (?, ?, ?)')
             .run(board.slug, board.name, board.description);
-        } catch (e) {
-          // Ignore if already exists
         }
+      } catch (e) {
+        console.log(`Board ${board.slug} already exists or error:`, e.message);
       }
     }
 
-    console.log('Database initialized successfully');
+    console.log('✓ Database initialized successfully');
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('Database initialization error:', error.message);
+    if (!isProduction) {
+      console.log('Falling back to SQLite...');
+      try {
+        const Database = require('better-sqlite3');
+        db = new Database('yokona.db');
+        await initDB(); // Retry with SQLite
+      } catch (sqliteError) {
+        console.error('SQLite fallback failed:', sqliteError.message);
+      }
+    }
   }
 }
 
@@ -321,13 +345,12 @@ async function initDB() {
 // Database health check
 app.get('/api/health', async (req, res) => {
   try {
-    if (isProduction || hasSupabase) {
-      await query('SELECT 1 as health');
-      res.json({ status: 'ok', database: 'supabase-postgresql', timestamp: new Date().toISOString() });
-    } else {
-      await query('SELECT 1 as health');
-      res.json({ status: 'ok', database: 'sqlite', timestamp: new Date().toISOString() });
-    }
+    await query('SELECT 1 as health');
+    res.json({ 
+      status: 'ok', 
+      database: hasSupabase ? 'supabase-postgresql' : 'sqlite',
+      timestamp: new Date().toISOString() 
+    });
   } catch (error) {
     console.error('Health check failed:', error.message);
     res.status(503).json({ 
@@ -343,7 +366,7 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/boards/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const boards = (isProduction || hasSupabase)
+    const boards = hasSupabase
       ? await query('SELECT * FROM boards WHERE slug = $1', [slug])
       : await query('SELECT * FROM boards WHERE slug = ?', [slug]);
 
@@ -369,7 +392,7 @@ app.get('/api/boards/:slug/threads', async (req, res) => {
     const limit = parseInt(req.query.limit) || 15;
     const offset = (page - 1) * limit;
 
-    const threads = (isProduction || hasSupabase)
+    const threads = hasSupabase
       ? await query(`
           SELECT * FROM threads 
           WHERE board_slug = $1 
@@ -383,7 +406,7 @@ app.get('/api/boards/:slug/threads', async (req, res) => {
           LIMIT ? OFFSET ?
         `, [slug, limit, offset]);
 
-    const count = (isProduction || hasSupabase)
+    const count = hasSupabase
       ? await query('SELECT COUNT(*) as count FROM threads WHERE board_slug = $1', [slug])
       : await query('SELECT COUNT(*) as count FROM threads WHERE board_slug = ?', [slug]);
 
@@ -412,7 +435,7 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
     }
 
     // Check if board exists
-    const boards = (isProduction || hasSupabase)
+    const boards = hasSupabase
       ? await query('SELECT * FROM boards WHERE slug = $1', [slug])
       : await query('SELECT * FROM boards WHERE slug = ?', [slug]);
 
@@ -441,7 +464,7 @@ app.post('/api/boards/:slug/threads', upload.single('image'), async (req, res) =
     const passwordHash = hashPassword(password);
     const isNsfwBool = isNsfw === 'true' || isNsfw === true;
 
-    const result = (isProduction || hasSupabase)
+    const result = hasSupabase
       ? await query(`
           INSERT INTO threads (board_slug, subject, content, image_data, image_type, is_nsfw, password_hash)
           VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -465,7 +488,7 @@ app.get('/api/threads/:id', async (req, res) => {
     const { id } = req.params;
 
     // Get thread info
-    const threads = (isProduction || hasSupabase)
+    const threads = hasSupabase
       ? await query('SELECT * FROM threads WHERE id = $1', [id])
       : await query('SELECT * FROM threads WHERE id = ?', [id]);
 
@@ -474,7 +497,7 @@ app.get('/api/threads/:id', async (req, res) => {
     }
 
     // Get posts
-    const posts = (isProduction || hasSupabase)
+    const posts = hasSupabase
       ? await query(`
           SELECT * FROM posts 
           WHERE thread_id = $1 
@@ -487,7 +510,7 @@ app.get('/api/threads/:id', async (req, res) => {
         `, [id]);
 
     // Increment view count
-    if (isProduction || hasSupabase) {
+    if (hasSupabase) {
       await query('UPDATE threads SET views = views + 1 WHERE id = $1', [id]);
     } else {
       await query('UPDATE threads SET views = views + 1 WHERE id = ?', [id]);
@@ -514,7 +537,7 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
     }
 
     // Check if thread exists
-    const threads = (isProduction || hasSupabase)
+    const threads = hasSupabase
       ? await query('SELECT * FROM threads WHERE id = $1', [id])
       : await query('SELECT * FROM threads WHERE id = ?', [id]);
 
@@ -542,7 +565,7 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
     const passwordHash = hashPassword(password);
 
     // Create post
-    const postResult = (isProduction || hasSupabase)
+    const postResult = hasSupabase
       ? await query(`
           INSERT INTO posts (thread_id, content, image_data, image_type, password_hash)
           VALUES ($1, $2, $3, $4, $5)
@@ -554,7 +577,7 @@ app.post('/api/threads/:id/posts', upload.single('image'), async (req, res) => {
         `, [id, content, imageData, imageType, passwordHash]);
 
     // Update thread reply count and bump time
-    if (isProduction || hasSupabase) {
+    if (hasSupabase) {
       await query(`
         UPDATE threads 
         SET reply_count = reply_count + 1, last_bump_at = CURRENT_TIMESTAMP 
@@ -582,14 +605,14 @@ app.get('/api/latest-posts', async (req, res) => {
     const limit = parseInt(req.query.limit) || 15;
     const offset = (page - 1) * limit;
 
-    const countResult = (isProduction || hasSupabase)
+    const countResult = hasSupabase
       ? await query(`SELECT COUNT(*) as total FROM threads`)
       : await query(`SELECT COUNT(*) as total FROM threads`);
 
     const total = countResult[0].total || countResult[0].count || 0;
     const totalPages = Math.ceil(total / limit);
 
-    const result = (isProduction || hasSupabase)
+    const result = hasSupabase
       ? await query(`
           SELECT t.*, b.name as board_name, b.slug as board_slug
           FROM threads t
@@ -630,7 +653,7 @@ app.get('/api/images/thread/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = (isProduction || hasSupabase)
+    const result = hasSupabase
       ? await query('SELECT image_data, image_type FROM threads WHERE id = $1', [id])
       : await query('SELECT image_data, image_type FROM threads WHERE id = ?', [id]);
 
@@ -653,7 +676,7 @@ app.get('/api/images/post/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = (isProduction || hasSupabase)
+    const result = hasSupabase
       ? await query('SELECT image_data, image_type FROM posts WHERE id = $1', [id])
       : await query('SELECT image_data, image_type FROM posts WHERE id = ?', [id]);
 
@@ -685,7 +708,7 @@ app.delete('/api/threads/:id', async (req, res) => {
     const passwordHash = hashPassword(password);
 
     // Check if thread exists and password matches
-    const threads = (isProduction || hasSupabase)
+    const threads = hasSupabase
       ? await query('SELECT * FROM threads WHERE id = $1 AND password_hash = $2', [id, passwordHash])
       : await query('SELECT * FROM threads WHERE id = ? AND password_hash = ?', [id, passwordHash]);
 
@@ -694,7 +717,7 @@ app.delete('/api/threads/:id', async (req, res) => {
     }
 
     // Delete thread (posts will be cascade deleted)
-    if (isProduction || hasSupabase) {
+    if (hasSupabase) {
       await query('DELETE FROM threads WHERE id = $1', [id]);
     } else {
       await query('DELETE FROM threads WHERE id = ?', [id]);
@@ -720,7 +743,7 @@ app.delete('/api/posts/:id', async (req, res) => {
     const passwordHash = hashPassword(password);
 
     // Check if post exists and password matches
-    const posts = (isProduction || hasSupabase)
+    const posts = hasSupabase
       ? await query('SELECT * FROM posts WHERE id = $1 AND password_hash = $2', [id, passwordHash])
       : await query('SELECT * FROM posts WHERE id = ? AND password_hash = ?', [id, passwordHash]);
 
@@ -731,14 +754,14 @@ app.delete('/api/posts/:id', async (req, res) => {
     const threadId = posts[0].thread_id;
 
     // Delete post
-    if (isProduction || hasSupabase) {
+    if (hasSupabase) {
       await query('DELETE FROM posts WHERE id = $1', [id]);
     } else {
       await query('DELETE FROM posts WHERE id = ?', [id]);
     }
 
     // Update thread reply count
-    if (isProduction || hasSupabase) {
+    if (hasSupabase) {
       await query('UPDATE threads SET reply_count = reply_count - 1 WHERE id = $1', [threadId]);
     } else {
       await query('UPDATE threads SET reply_count = reply_count - 1 WHERE id = ?', [threadId]);
@@ -754,19 +777,19 @@ app.delete('/api/posts/:id', async (req, res) => {
 // Get site statistics
 app.get('/api/stats', async (req, res) => {
   try {
-    const threadsCount = (isProduction || hasSupabase)
+    const threadsCount = hasSupabase
       ? await query('SELECT COUNT(*) as count FROM threads')
       : await query('SELECT COUNT(*) as count FROM threads');
 
-    const postsCount = (isProduction || hasSupabase)
+    const postsCount = hasSupabase
       ? await query('SELECT COUNT(*) as count FROM posts')
       : await query('SELECT COUNT(*) as count FROM posts');
 
-    const todayThreads = (isProduction || hasSupabase)
+    const todayThreads = hasSupabase
       ? await query(`SELECT COUNT(*) as count FROM threads WHERE created_at >= CURRENT_DATE`)
       : await query(`SELECT COUNT(*) as count FROM threads WHERE created_at >= date('now')`);
 
-    const todayPosts = (isProduction || hasSupabase)
+    const todayPosts = hasSupabase
       ? await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= CURRENT_DATE`)
       : await query(`SELECT COUNT(*) as count FROM posts WHERE created_at >= date('now')`);
 
@@ -835,7 +858,7 @@ app.get('*', (req, res) => {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('Received SIGINT, shutting down gracefully');
-  if (isProduction || hasSupabase) {
+  if (hasSupabase) {
     await db.end();
   }
   process.exit(0);
@@ -843,7 +866,7 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down gracefully');
-  if (isProduction || hasSupabase) {
+  if (hasSupabase) {
     await db.end();
   }
   process.exit(0);
@@ -854,9 +877,9 @@ app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Production mode: ${isProduction}`);
-  console.log(`Database: ${(isProduction || hasSupabase) ? 'Supabase PostgreSQL' : 'SQLite'}`);
+  console.log(`Database: ${hasSupabase ? 'Supabase PostgreSQL' : 'SQLite'}`);
 
-  if (isProduction || hasSupabase) {
+  if (hasSupabase) {
     console.log('Connected to Supabase PostgreSQL at:', 'db.yxppeiyytciuvzeskukw.supabase.co');
   }
 
@@ -865,10 +888,9 @@ app.listen(PORT, '0.0.0.0', async () => {
     console.log('Database initialization completed successfully');
   } catch (error) {
     console.error('Failed to initialize database:', error);
-    if (isProduction || hasSupabase) {
+    if (hasSupabase) {
       console.error('Make sure you have run the init-supabase.sql script in your Supabase SQL editor');
       console.error('Connection details: host=db.yxppeiyytciuvzeskukw.supabase.co, database=postgres');
     }
   }
 });
-
