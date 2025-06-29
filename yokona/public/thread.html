@@ -822,6 +822,11 @@
                     threadData = data;
                     totalPages = data.totalPages || 1;
 
+                    // Store current board for navigation
+                    if (data.thread && data.thread.board_slug) {
+                        localStorage.setItem("currentBoard", data.thread.board_slug);
+                    }
+
                     // Use requestAnimationFrame for smooth rendering
                     requestAnimationFrame(() => {
                         renderThread(data);
@@ -1381,11 +1386,16 @@
 
             // Go back to board
             function goBackToBoard() {
-                const boardSlug = localStorage.getItem("currentBoard");
-                if (boardSlug) {
-                    window.location.href = `board.html?board=${boardSlug}`;
+                if (threadData && threadData.thread && threadData.thread.board_slug) {
+                    window.location.href = `board.html?board=${threadData.thread.board_slug}`;
                 } else {
-                    window.location.href = "home.html"; // Or wherever the main board list is
+                    // Fallback to localStorage or home
+                    const boardSlug = localStorage.getItem("currentBoard");
+                    if (boardSlug) {
+                        window.location.href = `board.html?board=${boardSlug}`;
+                    } else {
+                        window.location.href = "home.html";
+                    }
                 }
             }
 
