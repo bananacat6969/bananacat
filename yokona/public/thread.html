@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Thread - Yokona</title>
         <style>
             body {
@@ -584,20 +584,30 @@
             }
 
             .password-popup {
-                background-color: #fff;
+                background-color: #f0f4ff;
                 padding: 20px;
-                border-radius: 8px;
-                text-align: center;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
                 border: 2px solid #96a8c8;
+                text-align: center;
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                max-width: 350px;
+                width: 90%;
+            }
+
+            .password-popup h3 {
+                margin-top: 0;
+                color: #5a6d8a;
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
             }
 
             .password-input {
                 padding: 8px;
                 margin: 10px 0;
                 border: 1px solid #ccc;
-                border-radius: 4px;
-                width: 200px;
+                width: 100%;
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
+                box-sizing: border-box;
+                background-color: #fff;
             }
 
             .password-buttons button {
@@ -606,14 +616,22 @@
                 border: none;
                 padding: 10px 20px;
                 cursor: pointer;
-                font-family: inherit;
-                border-radius: 5px;
+                font-family: "Comic Sans MS", "Comic Sans", Sans-serif;
                 margin: 0 5px;
                 font-weight: bold;
             }
 
             .password-buttons button:hover {
                 background-color: #5a6d8a;
+            }
+
+            .password-buttons .cancel-btn {
+                background-color: #ccc;
+                color: #333;
+            }
+
+            .password-buttons .cancel-btn:hover {
+                background-color: #999;
             }
         </style>
     </head>
@@ -744,7 +762,11 @@
             <div class="password-popup">
                 <h3 id="delete-title">Delete</h3>
                 <p>Enter deletion password:</p>
-                <input type="password" id="delete-password" class="password-input">
+                <input
+                    type="password"
+                    id="delete-password"
+                    class="password-input"
+                />
                 <div class="password-buttons">
                     <button onclick="confirmDelete()">Confirm</button>
                     <button onclick="cancelDelete()">Cancel</button>
@@ -771,39 +793,42 @@
                 }
 
                 // Show loading indicator
-                document.getElementById("posts-container").innerHTML = 
+                document.getElementById("posts-container").innerHTML =
                     '<div class="loading">⟳ Loading posts...</div>';
 
                 try {
                     // Add timeout and cache headers
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-                    
+                    const timeoutId = setTimeout(
+                        () => controller.abort(),
+                        15000,
+                    ); // 15 second timeout
+
                     const response = await fetch(
                         `/api/threads/${threadId}?page=${currentPage}&limit=${postsPerPage}`,
                         {
                             signal: controller.signal,
                             headers: {
-                                'Cache-Control': 'max-age=30' // Cache for 30 seconds
-                            }
-                        }
+                                "Cache-Control": "max-age=30", // Cache for 30 seconds
+                            },
+                        },
                     );
-                    
+
                     clearTimeout(timeoutId);
-                    
+
                     if (!response.ok) throw new Error("Thread not found");
 
                     const data = await response.json();
                     threadData = data;
                     totalPages = data.totalPages || 1;
-                    
+
                     // Use requestAnimationFrame for smooth rendering
                     requestAnimationFrame(() => {
                         renderThread(data);
                         updatePagination();
                     });
                 } catch (error) {
-                    if (error.name === 'AbortError') {
+                    if (error.name === "AbortError") {
                         document.getElementById("posts-container").innerHTML =
                             `<div class="error">Request timed out. <button onclick="initThread()" style="margin-left: 10px; background: #96a8c8; color: white; border: none; padding: 5px 10px; cursor: pointer;">Retry</button></div>`;
                     } else {
@@ -815,27 +840,27 @@
 
             // Delete post
             async function deletePost(postId) {
-                const password = prompt('Enter deletion password:');
+                const password = prompt("Enter deletion password:");
                 if (!password) return;
 
                 try {
                     const response = await fetch(`/api/posts/${postId}`, {
-                        method: 'DELETE',
+                        method: "DELETE",
                         headers: {
-                            'Content-Type': 'application/json'
+                            "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ password })
+                        body: JSON.stringify({ password }),
                     });
 
                     if (response.ok) {
-                        alert('Post deleted successfully');
+                        alert("Post deleted successfully");
                         loadThread();
                     } else {
                         const error = await response.json();
-                        alert(error.error || 'Failed to delete post');
+                        alert(error.error || "Failed to delete post");
                     }
                 } catch (error) {
-                    alert('Error deleting post: ' + error.message);
+                    alert("Error deleting post: " + error.message);
                 }
             }
 
@@ -845,38 +870,49 @@
             // Delete thread
             function deleteThread(threadId) {
                 deleteTargetId = threadId;
-                deleteType = 'thread';
-                document.getElementById('delete-title').textContent = 'Delete Thread';
-                document.getElementById('password-overlay').style.display = 'flex';
-                document.getElementById('delete-password').focus();
+                deleteType = "thread";
+                document.getElementById("delete-title").textContent =
+                    "Delete Thread";
+                document.getElementById("password-overlay").style.display =
+                    "flex";
+                document.getElementById("delete-password").focus();
             }
 
             // Delete post
             function deletePost(postId) {
                 deleteTargetId = postId;
-                deleteType = 'post';
-                document.getElementById('delete-title').textContent = 'Delete Post';
-                document.getElementById('password-overlay').style.display = 'flex';
-                document.getElementById('delete-password').focus();
+                deleteType = "post";
+                document.getElementById("delete-title").textContent =
+                    "Delete Post";
+                document.getElementById("password-overlay").style.display =
+                    "flex";
+                document.getElementById("delete-password").focus();
             }
 
             async function confirmDelete() {
-                const password = document.getElementById('delete-password').value;
+                const password =
+                    document.getElementById("delete-password").value;
                 if (!password) return;
 
                 try {
-                    const endpoint = deleteType === 'thread' ? `/api/threads/${deleteTargetId}` : `/api/posts/${deleteTargetId}`;
+                    const endpoint =
+                        deleteType === "thread"
+                            ? `/api/threads/${deleteTargetId}`
+                            : `/api/posts/${deleteTargetId}`;
                     const response = await fetch(endpoint, {
-                        method: 'DELETE',
+                        method: "DELETE",
                         headers: {
-                            'Content-Type': 'application/json'
+                            "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ password })
+                        body: JSON.stringify({ password }),
                     });
 
                     if (response.ok) {
-                        showModal('success', `${deleteType === 'thread' ? 'Thread' : 'Post'} deleted successfully`);
-                        if (deleteType === 'thread') {
+                        showModal(
+                            "success",
+                            `${deleteType === "thread" ? "Thread" : "Post"} deleted successfully`,
+                        );
+                        if (deleteType === "thread") {
                             setTimeout(() => {
                                 window.location.href = `board.html?board=${threadData.thread.board_slug}`;
                             }, 1000);
@@ -885,42 +921,57 @@
                         }
                     } else {
                         const error = await response.json();
-                        showModal('error', error.error || `Failed to delete ${deleteType}`);
+                        showModal(
+                            "error",
+                            error.error || `Failed to delete ${deleteType}`,
+                        );
                     }
                 } catch (error) {
-                    showModal('error', `Error deleting ${deleteType}: ` + error.message);
+                    showModal(
+                        "error",
+                        `Error deleting ${deleteType}: ` + error.message,
+                    );
                 }
 
                 cancelDelete();
             }
 
             function cancelDelete() {
-                document.getElementById('password-overlay').style.display = 'none';
-                document.getElementById('delete-password').value = '';
+                document.getElementById("password-overlay").style.display =
+                    "none";
+                document.getElementById("delete-password").value = "";
                 deleteTargetId = null;
                 deleteType = null;
             }
 
             // Handle Enter key in password input
-            document.addEventListener('DOMContentLoaded', function() {
-                document.getElementById('delete-password').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        confirmDelete();
-                    }
-                });
+            document.addEventListener("DOMContentLoaded", function () {
+                document
+                    .getElementById("delete-password")
+                    .addEventListener("keypress", function (e) {
+                        if (e.key === "Enter") {
+                            confirmDelete();
+                        }
+                    });
             });
 
             // Format green-text content
             function formatContent(content) {
-                return content.split('\n').map(line => {
-                    line = line.trim();
-                    if (line.startsWith('>')) {
-                        return `<span style="color: #789922; font-family: monospace;">${line}</span>`;
-                    }
-                    // Handle quote links
-                    line = line.replace(/&gt;&gt;(\d+)/g, '<a href="#" style="color: #d00; text-decoration: none;">&gt;&gt;$1</a>');
-                    return line;
-                }).join('<br>');
+                return content
+                    .split("\n")
+                    .map((line) => {
+                        line = line.trim();
+                        if (line.startsWith(">")) {
+                            return `<span style="color: #789922; font-family: monospace;">${line}</span>`;
+                        }
+                        // Handle quote links
+                        line = line.replace(
+                            /&gt;&gt;(\d+)/g,
+                            '<a href="#" style="color: #d00; text-decoration: none;">&gt;&gt;$1</a>',
+                        );
+                        return line;
+                    })
+                    .join("<br>");
             }
 
             // Render thread and posts
@@ -931,9 +982,13 @@
 
                 document.getElementById("thread-title").textContent =
                     thread.subject || "No Subject";
-                const nsfwTag = thread.is_nsfw ? '<span style="background-color: #ff6b6b; color: white; padding: 2px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; margin-left: 5px;">NSFW</span>' : '';
-                const deleteThreadBtn = '<button onclick="deleteThread(' + thread.id + ')" style="background-color: #ff6b6b; color: white; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; margin-left: 10px;">Delete Thread</button>';
-
+                const nsfwTag = thread.is_nsfw
+                    ? '<span style="background-color: #ff6b6b; color: white; padding: 2px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; margin-left: 5px;">NSFW</span>'
+                    : "";
+                const deleteThreadBtn =
+                    '<button onclick="deleteThread(' +
+                    thread.id +
+                    ')" style="background-color: #ff6b6b; color: white; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; margin-left: 10px;">Delete Thread</button>';
 
                 let postsHTML = "";
 
@@ -971,21 +1026,22 @@
                         });
 
                     const postBody =
-                        (post.image_data || post.image_type) || post.content
+                        post.image_data || post.image_type || post.content
                             ? `
                     <div class="post-body">
-                        ${(post.image_data || post.image_type) ? `<img src="/api/images/${isOP ? 'thread' : 'post'}/${isOP ? thread.id : post.id}" alt="${isOP ? "Thread" : "Post"} image" class="post-image" onclick="enlargeImage('/api/images/${isOP ? 'thread' : 'post'}/${isOP ? thread.id : post.id}')" onerror="this.style.display='none'">` : ""}
+                        ${post.image_data || post.image_type ? `<img src="/api/images/${isOP ? "thread" : "post"}/${isOP ? thread.id : post.id}" alt="${isOP ? "Thread" : "Post"} image" class="post-image" onclick="enlargeImage('/api/images/${isOP ? "thread" : "post"}/${isOP ? thread.id : post.id}')" onerror="this.style.display='none'">` : ""}
                         <div class="post-content">${formatPostContent(post.content, postNumber)}</div>
                     </div>
                 `
                             : `<div class="post-body"><div class="post-content">${formatPostContent(post.content, postNumber)}</div></div>`;
-                            const menuBtn = `
+                    const menuBtn = `
                         <div class="thread-menu" style="position: relative; display: inline-block;">
                             <button class="menu-dots" onclick="togglePostMenu(${isOP ? thread.id : post.id}, event, ${isOP})" style="background: none; border: none; font-size: 16px; cursor: pointer; padding: 2px 6px;">⋯</button>
                             <div class="menu-dropdown" id="post-menu-${isOP ? thread.id : post.id}" style="display: none; position: absolute; right: 0; background: white; border: 1px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;">
-                                ${isOP ? 
-                                    `<button onclick="deleteThread(${thread.id})" style="display: block; width: 100%; background: none; border: none; padding: 8px 12px; text-align: left; cursor: pointer; font-size: 12px;">Delete Thread</button>` : 
-                                    `<button onclick="deletePost(${post.id})" style="display: block; width: 100%; background: none; border: none; padding: 8px 12px; text-align: left; cursor: pointer; font-size: 12px;">Delete</button>`
+                                ${
+                                    isOP
+                                        ? `<button onclick="deleteThread(${thread.id})" style="display: block; width: 100%; background: none; border: none; padding: 8px 12px; text-align: left; cursor: pointer; font-size: 12px;">Delete Thread</button>`
+                                        : `<button onclick="deletePost(${post.id})" style="display: block; width: 100%; background: none; border: none; padding: 8px 12px; text-align: left; cursor: pointer; font-size: 12px;">Delete</button>`
                                 }
                             </div>
                         </div>
@@ -1179,13 +1235,16 @@
                 content = content || ""; // Handle null content
 
                 // Format green text
-                content = content.split('\n').map(line => {
-                    line = line.trim();
-                    if (line.startsWith('>')) {
-                        return `<span style="color: #789922; font-family: monospace;">${line}</span>`;
-                    }
-                    return line;
-                }).join('<br>');
+                content = content
+                    .split("\n")
+                    .map((line) => {
+                        line = line.trim();
+                        if (line.startsWith(">")) {
+                            return `<span style="color: #789922; font-family: monospace;">${line}</span>`;
+                        }
+                        return line;
+                    })
+                    .join("<br>");
 
                 // Handle quote links
                 content = content.replace(/&gt;&gt;(\d+)/g, (match, number) => {
@@ -1197,24 +1256,26 @@
 
             // Enlarge image
             function enlargeImage(imageSrc) {
-                window.open(imageSrc, '_blank');
+                window.open(imageSrc, "_blank");
             }
 
             // Show modal
             function showModal(type, message) {
                 const modal = document.getElementById(`${type}-modal`);
-                const messageElement = document.getElementById(`${type}-message`);
+                const messageElement = document.getElementById(
+                    `${type}-message`,
+                );
                 messageElement.textContent = message;
-                modal.style.display = 'block';
+                modal.style.display = "block";
 
                 setTimeout(() => {
-                    closeModal(type + '-modal');
+                    closeModal(type + "-modal");
                 }, 3000); // Close after 3 seconds
             }
 
             // Close modal
             function closeModal(modalId) {
-                document.getElementById(modalId).style.display = 'none';
+                document.getElementById(modalId).style.display = "none";
             }
 
             // Create reply
@@ -1226,7 +1287,10 @@
                 const password = document.getElementById("password").value;
 
                 if (!content) {
-                    showModal('error', 'Please enter some content for your reply');
+                    showModal(
+                        "error",
+                        "Please enter some content for your reply",
+                    );
                     return;
                 }
 
@@ -1238,14 +1302,19 @@
                         formData.append("image", fileInput.files[0]);
                     }
 
-                    const response = await fetch(`/api/threads/${threadId}/posts`, {
-                        method: "POST",
-                        body: formData,
-                    });
+                    const response = await fetch(
+                        `/api/threads/${threadId}/posts`,
+                        {
+                            method: "POST",
+                            body: formData,
+                        },
+                    );
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || "Failed to create reply");
+                        throw new Error(
+                            errorData.error || "Failed to create reply",
+                        );
                     }
 
                     // Reset form
@@ -1255,17 +1324,18 @@
                     // Reload thread to show new reply
                     await initThread();
 
-                    showModal('success', 'Reply posted successfully!');
+                    showModal("success", "Reply posted successfully!");
                 } catch (error) {
                     console.error("Error creating reply:", error);
-                    showModal('error', `Error: ${error.message}`);
+                    showModal("error", `Error: ${error.message}`);
                 }
             }
 
             // Update pagination
             function updatePagination() {
-                const paginationContainer = document.getElementById("pagination-bottom");
-                
+                const paginationContainer =
+                    document.getElementById("pagination-bottom");
+
                 if (totalPages <= 1) {
                     paginationContainer.innerHTML = "";
                     return;
@@ -1294,26 +1364,28 @@
                 event.stopPropagation();
                 const menu = document.getElementById(`post-menu-${postId}`);
                 // Close all other menus
-                document.querySelectorAll('.menu-dropdown').forEach(m => {
-                    if (m.id !== `post-menu-${postId}`) m.style.display = 'none';
+                document.querySelectorAll(".menu-dropdown").forEach((m) => {
+                    if (m.id !== `post-menu-${postId}`)
+                        m.style.display = "none";
                 });
-                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                menu.style.display =
+                    menu.style.display === "none" ? "block" : "none";
             }
 
             // Close menus when clicking outside
-            document.addEventListener('click', function() {
-                document.querySelectorAll('.menu-dropdown').forEach(m => {
-                    m.style.display = 'none';
+            document.addEventListener("click", function () {
+                document.querySelectorAll(".menu-dropdown").forEach((m) => {
+                    m.style.display = "none";
                 });
             });
 
             // Go back to board
             function goBackToBoard() {
-                const boardSlug = localStorage.getItem('currentBoard');
+                const boardSlug = localStorage.getItem("currentBoard");
                 if (boardSlug) {
                     window.location.href = `board.html?board=${boardSlug}`;
                 } else {
-                    window.location.href = 'home.html'; // Or wherever the main board list is
+                    window.location.href = "home.html"; // Or wherever the main board list is
                 }
             }
 
